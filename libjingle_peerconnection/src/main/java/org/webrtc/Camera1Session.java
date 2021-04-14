@@ -13,14 +13,13 @@ package org.webrtc;
 import android.content.Context;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.view.Surface;
+
+import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
-import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
-import android.graphics.Matrix;
 
 @SuppressWarnings("deprecation")
 class Camera1Session implements CameraSession {
@@ -84,7 +83,11 @@ class Camera1Session implements CameraSession {
     }
 
     final android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
-    android.hardware.Camera.getCameraInfo(cameraId, info);
+    try {
+      android.hardware.Camera.getCameraInfo(cameraId, info);
+    } catch (Exception e) {
+      // do nothing
+    }
 
     final CaptureFormat captureFormat;
     try {

@@ -11,10 +11,13 @@
 package org.webrtc;
 
 import android.os.SystemClock;
+
+import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nullable;
-import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 
 @SuppressWarnings("deprecation")
 public class Camera1Enumerator implements CameraEnumerator {
@@ -38,13 +41,18 @@ public class Camera1Enumerator implements CameraEnumerator {
   @Override
   public String[] getDeviceNames() {
     ArrayList<String> namesList = new ArrayList<>();
-    for (int i = 0; i < android.hardware.Camera.getNumberOfCameras(); ++i) {
-      String name = getDeviceName(i);
-      if (name != null) {
-        namesList.add(name);
-        Logging.d(TAG, "Index: " + i + ". " + name);
-      } else {
-        Logging.e(TAG, "Index: " + i + ". Failed to query camera name.");
+    int cameraNumber = android.hardware.Camera.getNumberOfCameras();
+    if (cameraNumber == 0) {
+      namesList.add(getDeviceName(0));
+    } else {
+      for (int i = 0; i < cameraNumber; ++i) {
+        String name = getDeviceName(i);
+        if (name != null) {
+          namesList.add(name);
+          Logging.d(TAG, "Index: " + i + ". " + name);
+        } else {
+          Logging.e(TAG, "Index: " + i + ". Failed to query camera name.");
+        }
       }
     }
     String[] namesArray = new String[namesList.size()];
@@ -74,12 +82,13 @@ public class Camera1Enumerator implements CameraEnumerator {
     return new Camera1Capturer(deviceName, eventsHandler, captureToTexture);
   }
 
-  private static @Nullable android.hardware.Camera.CameraInfo getCameraInfo(int index) {
+  private static @Nullable
+  android.hardware.Camera.CameraInfo getCameraInfo(int index) {
     android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
     try {
       android.hardware.Camera.getCameraInfo(index, info);
     } catch (Exception e) {
-      Logging.e(TAG, "getCameraInfo failed on index " + index, e);
+//      Logging.e(TAG, "getCameraInfo failed on index " + index, e);
       return null;
     }
     return info;
@@ -167,7 +176,8 @@ public class Camera1Enumerator implements CameraEnumerator {
         return i;
       }
     }
-    throw new IllegalArgumentException("No such camera: " + deviceName);
+    return 0;
+//    throw new IllegalArgumentException("No such camera: " + deviceName);
   }
 
   // Returns the name of the camera with camera index. Returns null if the
@@ -175,7 +185,8 @@ public class Camera1Enumerator implements CameraEnumerator {
   static @Nullable String getDeviceName(int index) {
     android.hardware.Camera.CameraInfo info = getCameraInfo(index);
     if (info == null) {
-      return null;
+      // rk3399 无摄像头，返回默认后置摄像头配置
+      return "Camera 0" + ", Facing back" + ", Orientation 0";
     }
 
     String facing =
