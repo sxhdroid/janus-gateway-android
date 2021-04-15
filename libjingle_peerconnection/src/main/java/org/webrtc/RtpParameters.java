@@ -10,11 +10,10 @@
 
 package org.webrtc;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.webrtc.MediaStreamTrack;
+
+import androidx.annotation.Nullable;
 
 /**
  * The parameters for an {@code RtpSender}, as defined in
@@ -33,7 +32,8 @@ public class RtpParameters {
     // If non-null, this represents the Transport Independent Application
     // Specific maximum bandwidth defined in RFC3890. If null, there is no
     // maximum bitrate.
-    @Nullable public Integer maxBitrateBps;
+    @Nullable
+    public Integer maxBitrateBps;
     // Not implemented.
     @Nullable public Integer minBitrateBps;
     // SSRC to be used by this encoding.

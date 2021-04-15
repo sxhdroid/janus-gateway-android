@@ -17,7 +17,8 @@ import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import androidx.annotation.Nullable;
+
 
 @SuppressWarnings("deprecation")
 public class Camera1Enumerator implements CameraEnumerator {

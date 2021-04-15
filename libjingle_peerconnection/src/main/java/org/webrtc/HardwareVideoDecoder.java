@@ -16,13 +16,16 @@ import android.media.MediaCodecInfo.CodecCapabilities;
 import android.media.MediaFormat;
 import android.os.SystemClock;
 import android.view.Surface;
+
+import org.webrtc.ThreadUtils.ThreadChecker;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
-import org.webrtc.ThreadUtils.ThreadChecker;
+
+import androidx.annotation.Nullable;
 
 /** Android hardware video decoder. */
 @TargetApi(16)
@@ -72,7 +75,8 @@ class HardwareVideoDecoder implements VideoDecoder, VideoSink {
   // Output thread runs a loop which polls MediaCodec for decoded output buffers.  It reformats
   // those buffers into VideoFrames and delivers them to the callback.  Variable is set on decoder
   // thread and is immutable while the codec is running.
-  @Nullable private Thread outputThread;
+  @Nullable
+  private Thread outputThread;
 
   // Checker that ensures work is run on the output thread.
   private ThreadChecker outputThreadChecker;

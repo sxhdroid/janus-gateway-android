@@ -11,7 +11,8 @@
 package org.webrtc;
 
 import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 public class NV12Buffer implements VideoFrame.Buffer {
   private final int width;

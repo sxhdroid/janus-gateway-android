@@ -10,18 +10,20 @@
 
 package org.webrtc;
 
-import static org.webrtc.MediaCodecUtils.EXYNOS_PREFIX;
-import static org.webrtc.MediaCodecUtils.INTEL_PREFIX;
-import static org.webrtc.MediaCodecUtils.NVIDIA_PREFIX;
-import static org.webrtc.MediaCodecUtils.QCOM_PREFIX;
-
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecInfo.CodecCapabilities;
 import android.media.MediaCodecList;
 import android.os.Build;
+
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
+
+import static org.webrtc.MediaCodecUtils.EXYNOS_PREFIX;
+import static org.webrtc.MediaCodecUtils.INTEL_PREFIX;
+import static org.webrtc.MediaCodecUtils.NVIDIA_PREFIX;
+import static org.webrtc.MediaCodecUtils.QCOM_PREFIX;
 
 /** Factory for Android hardware VideoDecoders. */
 @SuppressWarnings("deprecation") // API level 16 requires use of deprecated methods.

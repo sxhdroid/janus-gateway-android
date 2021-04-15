@@ -10,7 +10,6 @@
 
 package org.webrtc;
 
-import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecInfo.CodecCapabilities;
@@ -19,20 +18,20 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.os.SystemClock;
 import android.view.Surface;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
-import org.webrtc.EglBase;
-import org.webrtc.VideoFrame;
+
+import androidx.annotation.Nullable;
 
 // Java-side of peerconnection.cc:MediaCodecVideoDecoder.
 // This class is an implementation detail of the Java PeerConnection API.

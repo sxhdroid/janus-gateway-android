@@ -13,11 +13,13 @@ package org.webrtc;
 import android.content.Context;
 import android.util.Log;
 
-import java.util.List;
-import javax.annotation.Nullable;
 import org.webrtc.Logging.Severity;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.LegacyAudioDeviceModule;
+
+import java.util.List;
+
+import androidx.annotation.Nullable;
 
 /**
  * Java wrapper for a C++ PeerConnectionFactoryInterface.  Main entry point to
@@ -33,7 +35,8 @@ public class PeerConnectionFactory {
   private final long nativeFactory;
   private static boolean enableVideoHwAcceleration;
   private static volatile boolean internalTracerInitialized = false;
-  @Nullable private static Thread networkThread;
+  @Nullable
+  private static Thread networkThread;
   @Nullable private static Thread workerThread;
   @Nullable private static Thread signalingThread;
 

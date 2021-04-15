@@ -13,8 +13,10 @@ package org.webrtc;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.opengl.GLES20;
+
 import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 /**
  * Helper class to draw VideoFrames. Calls either drawer.drawOes, drawer.drawRgb, or
@@ -56,7 +58,8 @@ public class VideoFrameDrawer {
     // Intermediate copy buffer for uploading yuv frames that are not packed, i.e. stride > width.
     // TODO(magjed): Investigate when GL_UNPACK_ROW_LENGTH is available, or make a custom shader
     // that handles stride and compare performance with intermediate copy.
-    @Nullable private ByteBuffer copyBuffer;
+    @Nullable
+    private ByteBuffer copyBuffer;
     @Nullable private int[] yuvTextures;
 
     /**

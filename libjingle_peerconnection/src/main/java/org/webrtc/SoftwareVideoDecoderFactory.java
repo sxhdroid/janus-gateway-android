@@ -13,7 +13,8 @@ package org.webrtc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 public class SoftwareVideoDecoderFactory implements VideoDecoderFactory {
   @Deprecated

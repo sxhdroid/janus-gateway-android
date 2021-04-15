@@ -10,8 +10,6 @@
 
 package org.webrtc;
 
-import javax.annotation.Nullable;
-
 /**
  * Implements VideoCapturer.CapturerObserver and feeds frames to
  * webrtc::jni::AndroidVideoTrackSource.

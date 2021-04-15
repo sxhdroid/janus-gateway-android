@@ -10,10 +10,11 @@
 
 package org.webrtc;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import androidx.annotation.Nullable;
 
 public class SoftwareVideoEncoderFactory implements VideoEncoderFactory {
   @Nullable

@@ -13,8 +13,10 @@ package org.webrtc;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+
 import java.util.Arrays;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("deprecation")
 abstract class CameraCapturer implements CameraVideoCapturer {
@@ -30,7 +32,8 @@ abstract class CameraCapturer implements CameraVideoCapturer {
   private final static int OPEN_CAMERA_TIMEOUT = 10000;
 
   private final CameraEnumerator cameraEnumerator;
-  @Nullable private final CameraEventsHandler eventsHandler;
+  @Nullable
+  private final CameraEventsHandler eventsHandler;
   private final Handler uiThreadHandler;
 
   @Nullable

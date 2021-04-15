@@ -13,14 +13,16 @@ package org.webrtc;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import javax.annotation.Nullable;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
+
+import androidx.annotation.Nullable;
 
 /**
  * Holds EGL state and utility methods for handling an egl 1.0 EGLContext, an EGLDisplay,
@@ -32,7 +34,8 @@ class EglBase10 implements EglBase {
 
   private final EGL10 egl;
   private EGLContext eglContext;
-  @Nullable private EGLConfig eglConfig;
+  @Nullable
+  private EGLConfig eglConfig;
   private EGLDisplay eglDisplay;
   private EGLSurface eglSurface = EGL10.EGL_NO_SURFACE;
 

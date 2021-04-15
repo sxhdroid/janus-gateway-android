@@ -10,7 +10,8 @@
 
 package org.webrtc;
 
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 /** Java wrapper for a C++ MediaStreamTrackInterface. */
 public class MediaStreamTrack {
@@ -56,7 +57,8 @@ public class MediaStreamTrack {
   }
 
   /** Factory method to create an AudioTrack or VideoTrack subclass. */
-  static @Nullable MediaStreamTrack createMediaStreamTrack(long nativeTrack) {
+  static @Nullable
+  MediaStreamTrack createMediaStreamTrack(long nativeTrack) {
     if (nativeTrack == 0) {
       return null;
     }

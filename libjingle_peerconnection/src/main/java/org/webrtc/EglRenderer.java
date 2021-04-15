@@ -18,13 +18,15 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.view.Surface;
+
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 /**
  * Implements VideoSink by displaying the video stream on an EGL Surface. This class is intended to
@@ -84,7 +86,8 @@ public class EglRenderer implements VideoSink {
   // |renderThreadHandler| is a handler for communicating with |renderThread|, and is synchronized
   // on |handlerLock|.
   private final Object handlerLock = new Object();
-  @Nullable private Handler renderThreadHandler;
+  @Nullable
+  private Handler renderThreadHandler;
 
   private final ArrayList<FrameListenerAndParams> frameListeners = new ArrayList<>();
 

@@ -10,8 +10,7 @@
 
 package org.webrtc;
 
-import javax.annotation.Nullable;
-import org.webrtc.EncodedImage;
+import androidx.annotation.Nullable;
 
 /**
  * Interface for a video encoder that can be used with WebRTC. All calls will be made on the
@@ -94,7 +93,8 @@ public interface VideoEncoder {
   /** Settings for WebRTC quality based scaling. */
   public class ScalingSettings {
     public final boolean on;
-    @Nullable public final Integer low;
+    @Nullable
+    public final Integer low;
     @Nullable public final Integer high;
 
     /**

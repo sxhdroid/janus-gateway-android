@@ -10,13 +10,15 @@
 
 package org.webrtc;
 
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 /** Java wrapper for a C++ RtpSenderInterface. */
 public class RtpSender {
   final long nativeRtpSender;
 
-  @Nullable private MediaStreamTrack cachedTrack;
+  @Nullable
+  private MediaStreamTrack cachedTrack;
   private boolean ownsTrack = true;
 
   private final @Nullable DtmfSender dtmfSender;

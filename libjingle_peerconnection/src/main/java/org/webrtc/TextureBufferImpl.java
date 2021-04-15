@@ -11,8 +11,9 @@
 package org.webrtc;
 
 import android.graphics.Matrix;
-import javax.annotation.Nullable;
 import android.os.Handler;
+
+import androidx.annotation.Nullable;
 
 /**
  * Android texture buffer that glues together the necessary information together with a generic

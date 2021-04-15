@@ -29,13 +29,15 @@ import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 /**
  * Borrowed from Chromium's
@@ -213,7 +215,8 @@ public class NetworkMonitorAutoDetect extends BroadcastReceiver {
      *  Note: In some rare Android systems connectivityManager is null.  We handle that
      *  gracefully below.
      */
-    @Nullable private final ConnectivityManager connectivityManager;
+    @Nullable
+    private final ConnectivityManager connectivityManager;
 
     ConnectivityManagerDelegate(Context context) {
       connectivityManager =

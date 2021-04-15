@@ -18,11 +18,12 @@ import android.opengl.GLES20;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import java.nio.ByteBuffer;
-import java.util.concurrent.Callable;
-import javax.annotation.Nullable;
-import org.webrtc.EglBase;
+
 import org.webrtc.VideoFrame.TextureBuffer;
+
+import java.util.concurrent.Callable;
+
+import androidx.annotation.Nullable;
 
 /**
  * Helper class for using a SurfaceTexture to create WebRTC VideoFrames. In order to create WebRTC

@@ -13,7 +13,8 @@ package org.webrtc;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 /**
  * Java-land version of the PeerConnection APIs; wraps the C++ API
@@ -209,7 +210,8 @@ public class PeerConnection {
     }
 
     public static class Builder {
-      @Nullable private final List<String> urls;
+      @Nullable
+      private final List<String> urls;
       private String username = "";
       private String password = "";
       private TlsCertPolicy tlsCertPolicy = TlsCertPolicy.TLS_CERT_POLICY_SECURE;

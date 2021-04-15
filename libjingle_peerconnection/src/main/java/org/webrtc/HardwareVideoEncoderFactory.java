@@ -10,18 +10,19 @@
 
 package org.webrtc;
 
-import static org.webrtc.MediaCodecUtils.EXYNOS_PREFIX;
-import static org.webrtc.MediaCodecUtils.INTEL_PREFIX;
-import static org.webrtc.MediaCodecUtils.QCOM_PREFIX;
-
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.os.Build;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
+
+import static org.webrtc.MediaCodecUtils.EXYNOS_PREFIX;
+import static org.webrtc.MediaCodecUtils.INTEL_PREFIX;
+import static org.webrtc.MediaCodecUtils.QCOM_PREFIX;
 
 /** Factory for android hardware video encoders. */
 @SuppressWarnings("deprecation") // API 16 requires the use of deprecated methods.
@@ -39,7 +40,8 @@ public class HardwareVideoEncoderFactory implements VideoEncoderFactory {
   private static final List<String> H264_HW_EXCEPTION_MODELS =
       Arrays.asList("SAMSUNG-SGH-I337", "Nexus 7", "Nexus 4");
 
-  @Nullable private final EglBase14.Context sharedContext;
+  @Nullable
+  private final EglBase14.Context sharedContext;
   private final boolean enableIntelVp8Encoder;
   private final boolean enableH264HighProfile;
 

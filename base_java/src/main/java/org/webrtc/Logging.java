@@ -15,8 +15,8 @@ import java.io.StringWriter;
 import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
-import org.webrtc.Loggable;
+
+import androidx.annotation.Nullable;
 
 /**
  * Java wrapper for WebRTC logging. Logging defaults to java.util.logging.Logger, but a custom
@@ -42,7 +42,8 @@ import org.webrtc.Loggable;
 public class Logging {
   private static final Logger fallbackLogger = createFallbackLogger();
   private static volatile boolean loggingEnabled;
-  @Nullable private static Loggable loggable;
+  @Nullable
+  private static Loggable loggable;
   private static Severity loggableSeverity;
 
   private static Logger createFallbackLogger() {

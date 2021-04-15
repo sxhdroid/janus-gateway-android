@@ -14,13 +14,15 @@ import android.annotation.TargetApi;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
 import android.media.audiofx.AudioEffect.Descriptor;
-import android.media.audiofx.AutomaticGainControl;
 import android.media.audiofx.NoiseSuppressor;
 import android.os.Build;
+
+import org.webrtc.Logging;
+
 import java.util.List;
 import java.util.UUID;
-import javax.annotation.Nullable;
-import org.webrtc.Logging;
+
+import androidx.annotation.Nullable;
 
 // This class wraps control of three different platform effects. Supported
 // effects are: AcousticEchoCanceler (AEC) and NoiseSuppressor (NS).

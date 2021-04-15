@@ -11,22 +11,23 @@
 package org.webrtc;
 
 import android.annotation.TargetApi;
-import android.graphics.Matrix;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.opengl.GLES20;
 import android.os.Bundle;
 import android.view.Surface;
+
+import org.webrtc.ThreadUtils.ThreadChecker;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
-import org.webrtc.ThreadUtils.ThreadChecker;
+
+import androidx.annotation.Nullable;
 
 /** Android hardware video encoder. */
 @TargetApi(19)
@@ -83,7 +84,8 @@ class HardwareVideoEncoder implements VideoEncoder {
   private boolean automaticResizeOn;
 
   // --- Valid and immutable while an encoding session is running.
-  @Nullable private MediaCodecWrapper codec;
+  @Nullable
+  private MediaCodecWrapper codec;
   // Thread that delivers encoded frames to the user callback.
   @Nullable private Thread outputThread;
 

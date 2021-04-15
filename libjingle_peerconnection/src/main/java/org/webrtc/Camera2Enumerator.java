@@ -22,12 +22,15 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.util.AndroidException;
 import android.util.Range;
+
+import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
-import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
+
+import androidx.annotation.Nullable;
 
 @TargetApi(21)
 public class Camera2Enumerator implements CameraEnumerator {
@@ -40,7 +43,8 @@ public class Camera2Enumerator implements CameraEnumerator {
       new HashMap<String, List<CaptureFormat>>();
 
   final Context context;
-  @Nullable final CameraManager cameraManager;
+  @Nullable
+  final CameraManager cameraManager;
 
   public Camera2Enumerator(Context context) {
     this.context = context;

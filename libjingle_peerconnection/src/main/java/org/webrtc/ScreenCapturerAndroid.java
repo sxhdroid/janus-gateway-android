@@ -19,7 +19,8 @@ import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.view.Surface;
-import javax.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 /**
  * An implementation of VideoCapturer to capture the screen content as a video stream.
@@ -44,7 +45,8 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
 
   private int width;
   private int height;
-  @Nullable private VirtualDisplay virtualDisplay;
+  @Nullable
+  private VirtualDisplay virtualDisplay;
   @Nullable private SurfaceTextureHelper surfaceTextureHelper;
   @Nullable private CapturerObserver capturerObserver;
   private long numCapturedFrames = 0;
