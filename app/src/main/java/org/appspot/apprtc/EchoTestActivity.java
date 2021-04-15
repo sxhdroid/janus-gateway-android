@@ -31,13 +31,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
-import java.io.IOException;
-import java.lang.RuntimeException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import javax.annotation.Nullable;
+
 import org.appspot.apprtc.AppRTCAudioManager.AudioDevice;
 import org.appspot.apprtc.AppRTCAudioManager.AudioManagerEvents;
 import org.appspot.apprtc.PeerConnectionClient.DataChannelParameters;
@@ -63,7 +57,13 @@ import org.webrtc.VideoFileRenderer;
 import org.webrtc.VideoFrame;
 import org.webrtc.VideoSink;
 
-import org.appspot.apprtc.janus.JanusRTCInterface;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import androidx.annotation.Nullable;
 
 /**
  * Activity for JanusEchoTest setup, call waiting

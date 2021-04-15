@@ -12,7 +12,7 @@ android {
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        ndk.abiFilters = ['arm64-v8a']
+        ndk.abiFilters = ['arm64-v8a', 'armeabi-v7a']
     }
     buildTypes {
         release {
@@ -26,15 +26,14 @@ android {
     }
     packagingOptions {
         exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/proguard/androidx-annotations.pro'
     }
-    buildToolsVersion '28.0.3'
 }
 
 dependencies {
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support:cardview-v7:28.0.0'
-    implementation(name: 'autobanh', ext: 'jar')
-    implementation project(':libjingle_peerconnection')
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation project(path: ':libjanus')
     //implementation 'org.webrtc:google-webrtc:1.0.23995'
-    implementation files('libs/BaiduLBS_Android.jar')
+//    implementation files('libs/BaiduLBS_Android.jar')
 }

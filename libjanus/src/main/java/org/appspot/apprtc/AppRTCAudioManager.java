@@ -14,28 +14,29 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.util.Log;
+
+import org.appspot.apprtc.util.AppRTCUtils;
+import org.webrtc.ThreadUtils;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import javax.annotation.Nullable;
-import org.appspot.apprtc.util.AppRTCUtils;
-import org.webrtc.ThreadUtils;
+
+import androidx.annotation.Nullable;
 
 /**
  * AppRTCAudioManager manages all audio related parts of the AppRTC demo.
  */
 public class AppRTCAudioManager {
   private static final String TAG = "AppRTCAudioManager";
-  private static final String SPEAKERPHONE_AUTO = "auto";
-  private static final String SPEAKERPHONE_TRUE = "true";
-  private static final String SPEAKERPHONE_FALSE = "false";
+  public static final String SPEAKERPHONE_AUTO = "auto";
+  public static final String SPEAKERPHONE_TRUE = "true";
+  public static final String SPEAKERPHONE_FALSE = "false";
 
   /**
    * AudioDevice is the names of possible audio devices that we currently
@@ -158,22 +159,28 @@ public class AppRTCAudioManager {
   }
 
   /** Construction. */
-  static AppRTCAudioManager create(Context context) {
-    return new AppRTCAudioManager(context);
+  public static AppRTCAudioManager create(Context context) {
+    return create(context, SPEAKERPHONE_AUTO);
   }
 
-  private AppRTCAudioManager(Context context) {
+  /**
+   * Construction.
+   * @param useSpeakerphone {@link #SPEAKERPHONE_AUTO} or {@link #SPEAKERPHONE_FALSE} or {@link #SPEAKERPHONE_TRUE}
+   */
+  public static AppRTCAudioManager create(Context context,  String useSpeakerphone) {
+    return new AppRTCAudioManager(context, useSpeakerphone);
+  }
+
+  private AppRTCAudioManager(Context context, String useSpeakerphone) {
     Log.d(TAG, "ctor");
     ThreadUtils.checkIsOnMainThread();
     apprtcContext = context;
+    this.useSpeakerphone = useSpeakerphone;
     audioManager = ((AudioManager) context.getSystemService(Context.AUDIO_SERVICE));
     bluetoothManager = AppRTCBluetoothManager.create(context, this);
     wiredHeadsetReceiver = new WiredHeadsetReceiver();
     amState = AudioManagerState.UNINITIALIZED;
 
-    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-    useSpeakerphone = sharedPreferences.getString(context.getString(R.string.pref_speakerphone_key),
-        context.getString(R.string.pref_speakerphone_default));
     Log.d(TAG, "useSpeakerphone: " + useSpeakerphone);
     if (useSpeakerphone.equals(SPEAKERPHONE_FALSE)) {
       defaultAudioDevice = AudioDevice.EARPIECE;

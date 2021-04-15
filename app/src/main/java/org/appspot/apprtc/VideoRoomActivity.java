@@ -18,11 +18,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.Outline;
-import android.graphics.Path;
-import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
@@ -31,29 +26,17 @@ import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewOutlineProvider;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.widget.LinearLayout;
 import android.widget.Toast;
-import java.io.IOException;
-import java.lang.RuntimeException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.Nullable;
 import org.appspot.apprtc.AppRTCAudioManager.AudioDevice;
 import org.appspot.apprtc.AppRTCAudioManager.AudioManagerEvents;
 import org.appspot.apprtc.PeerConnectionClient2.DataChannelParameters;
 import org.appspot.apprtc.PeerConnectionClient2.PeerConnectionParameters;
-import org.appspot.apprtc.janus.JanusConnection;
-import org.appspot.apprtc.janus.JanusHandle;
+import org.appspot.apprtc.janus.JanusCommon.JanusConnectionParameters;
+import org.appspot.apprtc.janus.JanusRTCEvents2;
 import org.json.JSONObject;
 import org.webrtc.Camera1Enumerator;
 import org.webrtc.Camera2Enumerator;
@@ -69,12 +52,13 @@ import org.webrtc.SessionDescription;
 import org.webrtc.StatsReport;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturer;
-import org.webrtc.VideoFileRenderer;
-import org.webrtc.VideoFrame;
-import org.webrtc.VideoSink;
 
-import org.appspot.apprtc.janus.JanusRTCEvents2;
-import org.appspot.apprtc.janus.JanusCommon.JanusConnectionParameters;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Set;
+import java.util.Vector;
+
+import androidx.annotation.Nullable;
 
 import static org.appspot.apprtc.janus.JanusUtils.convertJsonToSdp;
 
@@ -285,7 +269,6 @@ public class VideoRoomActivity extends Activity implements PeerConnectionClient2
         // Get Intent parameters.
         roomUrl=intent.getDataString();
         roomId = intent.getLongExtra(EXTRA_ROOMID, 0);
-        roomId=1234;
         Log.d(TAG, "Room ID: " + roomId);
         if (roomId == 0) {
             logAndToast(getString(R.string.missing_url));

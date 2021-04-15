@@ -19,23 +19,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
 import android.webkit.URLUtil;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.TextView;
-import java.util.Random;
-import org.json.JSONArray;
-import org.json.JSONException;
 
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
-import android.widget.Toast;
+import java.util.Random;
+
+import androidx.cardview.widget.CardView;
 
 /**
  * Handles the initial setup where the user selects which room to join.
@@ -91,7 +83,7 @@ public class ConnectActivity extends Activity {
       public void onClick(View v) {
         //Toast.makeText(ConnectActivity.this, "go to loopback!", Toast.LENGTH_LONG).show();
         TopRTCDemoEnum type=TopRTCDemoEnum.LOOPBACK;
-        connectToRoom(type, "1234",false, true, false, 0);
+        connectToRoom(type, 1234,false, true, false, 0);
       }
     });
 
@@ -101,7 +93,7 @@ public class ConnectActivity extends Activity {
       public void onClick(View v) {
         //Toast.makeText(ConnectActivity.this, "go to audiobridge!", Toast.LENGTH_SHORT).show();
         TopRTCDemoEnum type=TopRTCDemoEnum.AUDIOBRIDGE;
-        connectToRoom(type,"1234", false, true, false, 0);
+        connectToRoom(type,1234, false, true, false, 0);
       }
     });
 
@@ -111,7 +103,7 @@ public class ConnectActivity extends Activity {
       public void onClick(View v) {
         //Toast.makeText(ConnectActivity.this, "go to audio bridge test!", Toast.LENGTH_SHORT).show();
         TopRTCDemoEnum type=TopRTCDemoEnum.VIDEOLIVE;
-        connectToRoom(type,"1234", false, false, false, 0);
+        connectToRoom(type,1234, false, false, false, 0);
       }
     });
 
@@ -121,7 +113,7 @@ public class ConnectActivity extends Activity {
       public void onClick(View v) {
         //Toast.makeText(ConnectActivity.this, "go to audio bridge test!", Toast.LENGTH_SHORT).show();
         TopRTCDemoEnum type=TopRTCDemoEnum.VIDEOMEETING;
-        connectToRoom(type,"1234", false, false, false, 0);
+        connectToRoom(type,5678, false, false, false, 0);
       }
     });
 
@@ -241,13 +233,13 @@ public class ConnectActivity extends Activity {
   }
 
   @SuppressWarnings("StringSplitter")
-  private void connectToRoom(TopRTCDemoEnum type,String roomId, boolean commandLineRun, boolean loopback,
+  private void connectToRoom(TopRTCDemoEnum type, long roomId, boolean commandLineRun, boolean loopback,
       boolean useValuesFromIntent, int runTimeMs) {
     ConnectActivity.commandLineRun = commandLineRun;
 
     // roomId is random for loopback.
     if (loopback) {
-      roomId = Integer.toString((new Random()).nextInt(100000000));
+      roomId = (new Random()).nextInt(100000000);
     }
 
     String roomUrl = sharedPref.getString(

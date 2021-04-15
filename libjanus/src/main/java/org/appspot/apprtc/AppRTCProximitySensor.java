@@ -16,10 +16,13 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
-import javax.annotation.Nullable;
 import android.util.Log;
+
 import org.appspot.apprtc.util.AppRTCUtils;
 import org.webrtc.ThreadUtils;
+
+import androidx.annotation.Nullable;
+
 
 /**
  * AppRTCProximitySensor manages functions related to the proximity sensor in

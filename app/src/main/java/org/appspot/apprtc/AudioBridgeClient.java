@@ -10,22 +10,17 @@
 
 package org.appspot.apprtc;
 
-import javax.annotation.Nullable;
-import org.appspot.apprtc.WebSocketChannelClient.WebSocketChannelEvents;
-import org.appspot.apprtc.WebSocketChannelClient.WebSocketConnectionState;
-import org.appspot.apprtc.janus.JanusRTCEvents;
-import org.appspot.apprtc.util.AppRTCUtils;
-import org.appspot.apprtc.util.AsyncHttpURLConnection;
-import org.appspot.apprtc.util.AsyncHttpURLConnection.AsyncHttpEvents;
-import org.appspot.apprtc.janus.JanusHandle;
-import org.appspot.apprtc.janus.JanusRTCInterface;
-import org.appspot.apprtc.janus.JanusTransaction;
-
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.appspot.apprtc.WebSocketChannelClient.WebSocketChannelEvents;
+import org.appspot.apprtc.WebSocketChannelClient.WebSocketConnectionState;
+import org.appspot.apprtc.janus.JanusHandle;
+import org.appspot.apprtc.janus.JanusRTCEvents;
+import org.appspot.apprtc.janus.JanusTransaction;
+import org.appspot.apprtc.util.AppRTCUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

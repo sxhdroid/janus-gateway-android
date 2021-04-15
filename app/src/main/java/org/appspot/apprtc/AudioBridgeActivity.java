@@ -20,29 +20,16 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
 
-import com.baidu.mapapi.SDKInitializer;
-
-import java.io.IOException;
-import java.lang.RuntimeException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import javax.annotation.Nullable;
 import org.appspot.apprtc.AppRTCAudioManager.AudioDevice;
 import org.appspot.apprtc.AppRTCAudioManager.AudioManagerEvents;
 import org.appspot.apprtc.PeerConnectionClient.DataChannelParameters;
@@ -50,25 +37,23 @@ import org.appspot.apprtc.PeerConnectionClient.PeerConnectionParameters;
 import org.appspot.apprtc.janus.JanusConnection;
 import org.appspot.apprtc.janus.JanusRTCEvents;
 import org.json.JSONObject;
-import org.webrtc.Camera1Enumerator;
-import org.webrtc.Camera2Enumerator;
-import org.webrtc.CameraEnumerator;
 import org.webrtc.EglBase;
-import org.webrtc.FileVideoCapturer;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
 import org.webrtc.PeerConnectionFactory;
-import org.webrtc.RendererCommon.ScalingType;
-import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.SessionDescription;
 import org.webrtc.StatsReport;
-import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturer;
-import org.webrtc.VideoFileRenderer;
 import org.webrtc.VideoFrame;
 import org.webrtc.VideoSink;
 
-import org.appspot.apprtc.janus.JanusRTCEvents;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import androidx.annotation.Nullable;
+
 
 /**
  * Activity for JanusEchoTest setup, call waiting
@@ -195,7 +180,7 @@ public class AudioBridgeActivity extends Activity implements PeerConnectionClien
         super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler(new UnhandledExceptionHandler(this));
         //Baidu Map init 在使用SDK各组件之前初始化context信息，传入ApplicationContext
-        SDKInitializer.initialize(getApplicationContext());
+//        SDKInitializer.initialize(getApplicationContext());
 
         // Set window styles for fullscreen-window size. Needs to be done before
         // adding content.

@@ -15,7 +15,7 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-import org.appspot.apprtc.janus.JanusConnection;
+import org.appspot.apprtc.janus.JanusConnection2;
 import org.appspot.apprtc.util.RecordedAudioToFileController;
 import org.appspot.apprtc.util.RtcEventLog;
 import org.webrtc.AudioSource;
@@ -44,9 +44,11 @@ import org.webrtc.SoftwareVideoEncoderFactory;
 import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
 import org.webrtc.SurfaceTextureHelper;
+import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoDecoderFactory;
 import org.webrtc.VideoEncoderFactory;
+import org.webrtc.VideoFrame;
 import org.webrtc.VideoSink;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
@@ -92,9 +94,9 @@ import androidx.annotation.Nullable;
  *
  * <p>All public methods are routed to local looper thread.
  * All PeerConnectionEvents callbacks are invoked from the same looper thread.
- * This class is a singleton.
+ * This class is a singleton.CreateOffer
  */
-public class PeerConnectionClient {
+public class PeerConnectionClient2 {
   public static final String VIDEO_TRACK_ID = "ARDAMSv0";
   public static final String AUDIO_TRACK_ID = "ARDAMSa0";
   public static final String VIDEO_TRACK_TYPE = "video";
@@ -139,7 +141,9 @@ public class PeerConnectionClient {
   @Nullable
   private PeerConnectionFactory factory;
   @Nullable
-  private ConcurrentHashMap<BigInteger,JanusConnection> peerConnectionMap;
+  private ConcurrentHashMap<BigInteger,JanusConnection2> peerConnectionMap;
+  @Nullable
+  private ConcurrentHashMap<BigInteger,proxyVideoSinks> videoSinkMap;
   @Nullable
   private AudioSource audioSource;
   @Nullable private SurfaceTextureHelper surfaceTextureHelper;
@@ -148,7 +152,7 @@ public class PeerConnectionClient {
   private boolean videoCapturerStopped;
   private boolean isError;
   @Nullable
-  private VideoSink localRender;
+  private VideoSink localSink;
   @Nullable private List<VideoSink> remoteSinks;
   private int videoWidth;
   private int videoHeight;
@@ -278,18 +282,18 @@ public class PeerConnectionClient {
     /**
      * Callback fired once local SDP is created and set.
      */
-    void onLocalDescription(final SessionDescription sdp,final BigInteger handleId);
+    void onLocalDescription(final BigInteger handleId, final SessionDescription sdp);
 
 
     /**
      * Callback fired once local Ice candidate is generated.
      */
-    void onIceCandidate(final IceCandidate candidate,final BigInteger handleId);
+    void onIceCandidate(final BigInteger handleId, final IceCandidate candidate);
 
     /**
      * Callback fired once local ICE candidates are removed.
      */
-    void onIceCandidatesRemoved(final IceCandidate[] candidates);
+    void onIceCandidatesRemoved(final BigInteger handleId, final IceCandidate[] candidates);
 
     /**
      * Callback fired once connection is established (IceConnectionState is
@@ -306,26 +310,48 @@ public class PeerConnectionClient {
     /**
      * Callback fired once peer connection is closed.
      */
-    void onPeerConnectionClosed();
+    void onPeerConnectionClosed(final BigInteger handleId);
 
     /**
      * Callback fired once peer connection statistics is ready.
      */
-    void onPeerConnectionStatsReady(final StatsReport[] reports);
+    void onPeerConnectionStatsReady(final BigInteger handleId, final StatsReport[] reports);
 
     /**
      * Callback fired once peer connection error happened.
      */
-    void onPeerConnectionError(final String description);
+    void onPeerConnectionError(final BigInteger handleId, final String description);
 
-    void onRemoteRender(JanusConnection connection);
+    void onLocalRender(final BigInteger handleId);
+
+    void onRemoteRender(final BigInteger handleId);
+  }
+
+  public static class proxyVideoSinks implements VideoSink {
+    private VideoSink target = null;
+
+    @Override
+    synchronized public void onFrame(VideoFrame frame) {
+      if (target == null) {
+        Logging.d(TAG, "Dropping frame in proxy because target is null.");
+        return;
+      }
+
+      target.onFrame(frame);
+    }
+
+    synchronized public void setTarget(VideoSink target) {
+      this.target = target;
+    }
+
+    synchronized public void reset() {target = null;}
   }
 
   /**
    * Create a PeerConnectionClient with the specified parameters. PeerConnectionClient takes
    * ownership of |eglBase|.
    */
-  public PeerConnectionClient(Context appContext, EglBase eglBase,
+  public PeerConnectionClient2(Context appContext, EglBase eglBase,
       PeerConnectionParameters peerConnectionParameters, PeerConnectionEvents events) {
     this.rootEglBase = eglBase;
     this.appContext = appContext;
@@ -334,6 +360,7 @@ public class PeerConnectionClient {
     this.dataChannelEnabled = peerConnectionParameters.dataChannelParameters != null;
 
     this.peerConnectionMap=new ConcurrentHashMap<>();
+    this.videoSinkMap=new ConcurrentHashMap<>();
 
     Log.d(TAG, "Preferred video codec: " + getSdpVideoCodecName(peerConnectionParameters));
 
@@ -358,23 +385,14 @@ public class PeerConnectionClient {
     executor.execute(() -> createPeerConnectionFactoryInternal(options));
   }
 
-  public void createPeerConnection(final VideoSink localRender, final VideoSink remoteSink,
-      final VideoCapturer videoCapturer,final BigInteger handleId) {
+  public void createPeerConnection(final VideoCapturer videoCapturer, final BigInteger handleId) {
     if (peerConnectionParameters.videoCallEnabled && videoCapturer == null) {
       Log.w(TAG, "Video call enabled but no video capturer provided.");
     }
-    createPeerConnection(
-        localRender, Collections.singletonList(remoteSink), videoCapturer,handleId);
-  }
-
-  public void createPeerConnection(final VideoSink localRender, final List<VideoSink> remoteSinks,
-      final VideoCapturer videoCapturer, final BigInteger handleId) {
     if (peerConnectionParameters == null) {
       Log.e(TAG, "Creating peer connection without initializing factory.");
       return;
     }
-    this.localRender = localRender;
-    this.remoteSinks = remoteSinks;
     this.videoCapturer = videoCapturer;
     executor.execute(() -> {
       try {
@@ -635,7 +653,8 @@ public class PeerConnectionClient {
 
     List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
     if (isVideoCallEnabled()) {
-      peerConnection.addTrack(createVideoTrack(videoCapturer), mediaStreamLabels);
+      peerConnection.addTrack(createVideoTrack(handleId, videoCapturer), mediaStreamLabels);
+      events.onLocalRender(handleId);
       // We can add the renderers right away because we don't need to wait for an
       // answer to get the remote track.
      /*remoteVideoTrack = getRemoteVideoTrack(handleId);
@@ -696,15 +715,16 @@ public class PeerConnectionClient {
     SDPObserver sdpObserver = new SDPObserver();
     PeerConnection peerConnection = factory.createPeerConnection(rtcConfig, pcObserver);
 
-    JanusConnection janusConnection = new JanusConnection();
-    janusConnection.handleId = handleId;
-    janusConnection.sdpObserver = sdpObserver;
-    janusConnection.peerConnection = peerConnection;
-    janusConnection.type = type;
+    JanusConnection2 JanusConnection2 = new JanusConnection2();
+    JanusConnection2.handleId = handleId;
+    JanusConnection2.sdpObserver = sdpObserver;
+    JanusConnection2.peerConnection = peerConnection;
+    JanusConnection2.type = type;
     Log.d(TAG,"We are putting handleId="+handleId);
-    peerConnectionMap.put(handleId, janusConnection);
-    pcObserver.setConnection(janusConnection);
-    sdpObserver.setConnection(janusConnection);
+    peerConnectionMap.put(handleId, JanusConnection2);
+    videoSinkMap.put(handleId, new proxyVideoSinks());
+    pcObserver.setConnection(JanusConnection2);
+    sdpObserver.setConnection(JanusConnection2);
     Log.d(TAG, "Peer connection created.");
     return peerConnection;
   }
@@ -726,13 +746,25 @@ public class PeerConnectionClient {
     statsTimer.cancel();
 
     if (peerConnectionMap != null) {
-      for(JanusConnection conn : peerConnectionMap.values()) {
+      for(JanusConnection2 conn : peerConnectionMap.values()) {
         if (conn.peerConnection != null) {
           conn.peerConnection.dispose();
           conn.peerConnection = null;
         }
       }
     }
+    peerConnectionMap.clear();
+
+    if(videoSinkMap != null) {
+      for(proxyVideoSinks sink : videoSinkMap.values()) {
+        if (sink != null) {
+          sink.reset();
+        }
+      }
+    }
+    videoSinkMap.clear();
+
+
     Log.d(TAG, "Closing audio source.");
     if (audioSource != null) {
       audioSource.dispose();
@@ -759,7 +791,7 @@ public class PeerConnectionClient {
       surfaceTextureHelper = null;
     }
 
-    localRender = null;
+    localSink = null;
     remoteSinks = null;
     Log.d(TAG, "Closing peer connection factory.");
     if (factory != null) {
@@ -768,7 +800,7 @@ public class PeerConnectionClient {
     }
     rootEglBase.release();
     Log.d(TAG, "Closing peer connection done.");
-    events.onPeerConnectionClosed();
+    //events.onPeerConnectionClosed(); fixme:
     PeerConnectionFactory.stopInternalTracingCapture();
     PeerConnectionFactory.shutdownInternalTracer();
   }
@@ -786,7 +818,7 @@ public class PeerConnectionClient {
     boolean success = peerConnection.getStats(new StatsObserver() {
       @Override
       public void onComplete(final StatsReport[] reports) {
-        events.onPeerConnectionStatsReady(reports);
+        //events.onPeerConnectionStatsReady(reports); fixme:
       }
     }, null);
     if (!success) {
@@ -835,7 +867,7 @@ public class PeerConnectionClient {
   public void createOffer(final BigInteger handleId) {
     executor.execute(() -> {
       Log.d(TAG,"peerConnectionMap get handleId="+handleId);
-      JanusConnection connection = peerConnectionMap.get(handleId);
+      JanusConnection2 connection = peerConnectionMap.get(handleId);
       PeerConnection peerConnection=connection.peerConnection;
       if (peerConnection != null && !isError) {
         Log.d(TAG, "PC Create OFFER");
@@ -850,7 +882,7 @@ public class PeerConnectionClient {
       SDPObserver sdpObserver = peerConnectionMap.get(handleId).sdpObserver;
       if (peerConnection != null && !isError) {
         Log.d(TAG, "PC create ANSWER");
-        JanusConnection connection = peerConnectionMap.get(handleId);
+        JanusConnection2 connection = peerConnectionMap.get(handleId);
         peerConnection.setRemoteDescription(sdpObserver, sdp);
         peerConnection.createAnswer(connection.sdpObserver, sdpMediaConstraints);
       }
@@ -910,6 +942,24 @@ public class PeerConnectionClient {
     });
   }
 
+  public void setVideoRender(BigInteger handleId, SurfaceViewRenderer videoRender) {
+    executor.execute(() -> {
+      videoSinkMap.get(handleId).setTarget(videoRender);
+    });
+  }
+  public void dispose(BigInteger handleId) {
+    executor.execute(() -> {
+      videoSinkMap.remove(handleId);
+      JanusConnection2 conn = peerConnectionMap.get(handleId);
+      if (conn.peerConnection != null) {
+        conn.peerConnection.dispose();
+        conn.peerConnection = null;
+      }
+      peerConnectionMap.remove(handleId);
+    });
+  }
+
+
   public void stopVideoSource() {
     executor.execute(() -> {
       if (videoCapturer != null && !videoCapturerStopped) {
@@ -967,7 +1017,7 @@ public class PeerConnectionClient {
     Log.e(TAG, "Peerconnection error: " + errorMessage);
     executor.execute(() -> {
       if (!isError) {
-        events.onPeerConnectionError(errorMessage);
+        //events.onPeerConnectionError(errorMessage); fixme:
         isError = true;
       }
     });
@@ -982,7 +1032,7 @@ public class PeerConnectionClient {
   }
 
   @Nullable
-  private VideoTrack createVideoTrack(VideoCapturer capturer) {
+  private VideoTrack createVideoTrack(BigInteger handleId, VideoCapturer capturer) {
     surfaceTextureHelper =
         SurfaceTextureHelper.create("CaptureThread", rootEglBase.getEglBaseContext());
     videoSource = factory.createVideoSource(capturer.isScreencast());
@@ -991,7 +1041,7 @@ public class PeerConnectionClient {
 
     localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
     localVideoTrack.setEnabled(renderVideo);
-    localVideoTrack.addSink(localRender);
+    localVideoTrack.addSink(videoSinkMap.get(handleId));
     return localVideoTrack;
   }
 
@@ -1239,20 +1289,20 @@ public class PeerConnectionClient {
 
   // Implementation detail: observe ICE & stream changes and react accordingly.
   private class PCObserver implements PeerConnection.Observer {
-    private JanusConnection connection;
+    private JanusConnection2 connection;
     private PeerConnection peerConnection;
-    public void setConnection(JanusConnection connection) {
+    public void setConnection(JanusConnection2 connection) {
       this.connection = connection;
       this.peerConnection = connection.peerConnection;
     }
     @Override
     public void onIceCandidate(final IceCandidate candidate) {
-      executor.execute(() -> events.onIceCandidate(candidate,connection.handleId));
+      executor.execute(() -> events.onIceCandidate(connection.handleId, candidate));
     }
 
     @Override
     public void onIceCandidatesRemoved(final IceCandidate[] candidates) {
-      executor.execute(() -> events.onIceCandidatesRemoved(candidates));
+      executor.execute(() -> events.onIceCandidatesRemoved(connection.handleId, candidates));
     }
 
     @Override
@@ -1297,7 +1347,8 @@ public class PeerConnectionClient {
             remoteVideoTrack = stream.videoTracks.get(0);
             remoteVideoTrack.setEnabled(true);
             connection.videoTrack = remoteVideoTrack;
-            events.onRemoteRender(connection);
+            connection.videoTrack.addSink(videoSinkMap.get(connection.handleId));
+            events.onRemoteRender(connection.handleId);
           }
         }
       });
@@ -1359,7 +1410,7 @@ public class PeerConnectionClient {
     private BigInteger handleId;
     private SessionDescription localSdp;
     private boolean type;
-    public void setConnection(JanusConnection connection) {
+    public void setConnection(JanusConnection2 connection) {
       this.peerConnection = connection.peerConnection;
       this.sdpObserver = connection.sdpObserver;
       this.handleId = connection.handleId;
@@ -1401,7 +1452,7 @@ public class PeerConnectionClient {
           if (peerConnection.getRemoteDescription() == null) {
             // We've just set our local SDP so time to send it.
             Log.d(TAG, "Local SDP set succesfully");
-            events.onLocalDescription(localSdp,handleId);
+            events.onLocalDescription(handleId, localSdp);
           } else {
             // We've just set remote description, so drain remote
             // and send local ICE candidates.
@@ -1415,7 +1466,7 @@ public class PeerConnectionClient {
             // We've just set our local SDP so time to send it, drain
             // remote and send local ICE candidates.
             Log.d(TAG, "Local SDP set succesfully");
-            events.onLocalDescription(localSdp,handleId);
+            events.onLocalDescription(handleId, localSdp);
             drainCandidates(handleId);
           } else {
             // We've just set remote SDP - do nothing for now -

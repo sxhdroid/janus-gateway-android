@@ -24,12 +24,15 @@ import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
-import javax.annotation.Nullable;
 import android.util.Log;
-import java.util.List;
-import java.util.Set;
+
 import org.appspot.apprtc.util.AppRTCUtils;
 import org.webrtc.ThreadUtils;
+
+import java.util.List;
+import java.util.Set;
+
+import androidx.annotation.Nullable;
 
 /**
  * AppRTCProximitySensor manages functions related to Bluetoth devices in the
@@ -65,18 +68,18 @@ public class AppRTCBluetoothManager {
 
   private final Context apprtcContext;
   private final AppRTCAudioManager apprtcAudioManager;
-  @Nullable
+  @androidx.annotation.Nullable
   private final AudioManager audioManager;
   private final Handler handler;
 
   int scoConnectionAttempts;
   private State bluetoothState;
   private final BluetoothProfile.ServiceListener bluetoothServiceListener;
-  @Nullable
+  @androidx.annotation.Nullable
   private BluetoothAdapter bluetoothAdapter;
-  @Nullable
+  @androidx.annotation.Nullable
   private BluetoothHeadset bluetoothHeadset;
-  @Nullable
+  @androidx.annotation.Nullable
   private BluetoothDevice bluetoothDevice;
   private final BroadcastReceiver bluetoothHeadsetReceiver;
 

@@ -58,7 +58,7 @@ import java.math.BigInteger;
 import java.util.Set;
 import java.util.Vector;
 
-import javax.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import static org.appspot.apprtc.janus.JanusUtils.convertJsonToSdp;
 
@@ -256,8 +256,8 @@ public class VideoLiveActivity extends Activity implements PeerConnectionClient2
             }
         }
 
-        //roomUrl = intent.getStringExtra(EXTRA_SERVERADDR);;
-        roomUrl="ws://23.106.156.204:8188";
+        roomUrl = intent.getDataString();
+//        roomUrl="ws://23.106.156.204:8188";
         if (roomUrl.equals("")) {
             logAndToast(getString(R.string.missing_url));
             Log.e(TAG, "Didn't get any URL in intent!");

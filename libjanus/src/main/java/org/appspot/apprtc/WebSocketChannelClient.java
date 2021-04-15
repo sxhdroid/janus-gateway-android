@@ -11,13 +11,14 @@ package org.appspot.apprtc;
 
 import android.os.Handler;
 import android.util.Log;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import de.tavendo.autobahn.WebSocket.WebSocketConnectionObserver;
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketOptions;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * WebSocket client implementation.
