@@ -386,12 +386,12 @@ public class PeerConnectionClient2 {
   }
 
   public void createPeerConnection(final VideoCapturer videoCapturer, final BigInteger handleId) {
-    if (peerConnectionParameters.videoCallEnabled && videoCapturer == null) {
-      Log.w(TAG, "Video call enabled but no video capturer provided.");
-    }
     if (peerConnectionParameters == null) {
       Log.e(TAG, "Creating peer connection without initializing factory.");
       return;
+    }
+    if (peerConnectionParameters.videoCallEnabled && videoCapturer == null) {
+      Log.w(TAG, "Video call enabled but no video capturer provided.");
     }
     this.videoCapturer = videoCapturer;
     executor.execute(() -> {
