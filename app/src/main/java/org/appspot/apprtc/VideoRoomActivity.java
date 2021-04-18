@@ -965,8 +965,8 @@ public class VideoRoomActivity extends Activity implements PeerConnectionClient2
         if (peerConnectionParameters.videoCallEnabled) {
             videoCapturer = createVideoCapturer();
         }
-
-        PeerConnectionClient2.createPeerConnection(videoCapturer,handleId);
+        PeerConnectionClient2.setVideoCapturer(videoCapturer);
+        PeerConnectionClient2.createPeerConnection(handleId);
 
         logAndToast("Creating OFFER...");
         // Create offer. Offer SDP will be sent to answering client in

@@ -385,7 +385,7 @@ public class PeerConnectionClient2 {
     executor.execute(() -> createPeerConnectionFactoryInternal(options));
   }
 
-  public void createPeerConnection(final VideoCapturer videoCapturer, final BigInteger handleId) {
+  public void createPeerConnection(final BigInteger handleId) {
     if (peerConnectionParameters == null) {
       Log.e(TAG, "Creating peer connection without initializing factory.");
       return;
@@ -393,7 +393,6 @@ public class PeerConnectionClient2 {
     if (peerConnectionParameters.videoCallEnabled && videoCapturer == null) {
       Log.w(TAG, "Video call enabled but no video capturer provided.");
     }
-    this.videoCapturer = videoCapturer;
     executor.execute(() -> {
       try {
         createMediaConstraintsInternal();
@@ -959,6 +958,9 @@ public class PeerConnectionClient2 {
     });
   }
 
+  public void setVideoCapturer(@Nullable VideoCapturer videoCapturer) {
+    this.videoCapturer = videoCapturer;
+  }
 
   public void stopVideoSource() {
     executor.execute(() -> {
