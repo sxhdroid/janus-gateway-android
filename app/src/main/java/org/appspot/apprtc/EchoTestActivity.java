@@ -286,9 +286,9 @@ public class EchoTestActivity extends Activity implements PeerConnectionClient.P
         }
 
         // Get Intent parameters.
-        String roomId = intent.getStringExtra(EXTRA_ROOMID);
+        long roomId = intent.getLongExtra(EXTRA_ROOMID, 0);
         Log.d(TAG, "Room ID: " + roomId);
-        if (roomId == null || roomId.length() == 0) {
+        if (roomId == 0) {
             logAndToast(getString(R.string.missing_url));
             Log.e(TAG, "Incorrect room ID in intent!");
             setResult(RESULT_CANCELED);
@@ -348,8 +348,8 @@ public class EchoTestActivity extends Activity implements PeerConnectionClient.P
         Log.i("CallActivity","roomid="+roomId);
         Log.i("CallActivity","urlParameters="+urlParameters);
         //just hack it here
-        String roomUriStr="ws://39.106.100.180:8188";
-        String roomIdStr="1234";
+        String roomUriStr = intent.getDataString();
+//        String roomIdStr="1234";
 
         //roomConnectionParameters = new RoomConnectionParameters(roomUriStr, roomIdStr, loopback, urlParameters);
 
