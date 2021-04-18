@@ -143,7 +143,7 @@ public class PeerConnectionClient2 {
   @Nullable
   private ConcurrentHashMap<BigInteger,JanusConnection2> peerConnectionMap;
   @Nullable
-  private ConcurrentHashMap<BigInteger,proxyVideoSinks> videoSinkMap;
+  private ConcurrentHashMap<BigInteger, ProxyVideoSinks> videoSinkMap;
   @Nullable
   private AudioSource audioSource;
   @Nullable private SurfaceTextureHelper surfaceTextureHelper;
@@ -327,7 +327,7 @@ public class PeerConnectionClient2 {
     void onRemoteRender(final BigInteger handleId);
   }
 
-  public static class proxyVideoSinks implements VideoSink {
+  public static class ProxyVideoSinks implements VideoSink {
     private VideoSink target = null;
 
     @Override
@@ -359,8 +359,8 @@ public class PeerConnectionClient2 {
     this.peerConnectionParameters = peerConnectionParameters;
     this.dataChannelEnabled = peerConnectionParameters.dataChannelParameters != null;
 
-    this.peerConnectionMap=new ConcurrentHashMap<>();
-    this.videoSinkMap=new ConcurrentHashMap<>();
+    this.peerConnectionMap = new ConcurrentHashMap<>();
+    this.videoSinkMap = new ConcurrentHashMap<>();
 
     Log.d(TAG, "Preferred video codec: " + getSdpVideoCodecName(peerConnectionParameters));
 
@@ -721,7 +721,7 @@ public class PeerConnectionClient2 {
     JanusConnection2.type = type;
     Log.d(TAG,"We are putting handleId="+handleId);
     peerConnectionMap.put(handleId, JanusConnection2);
-    videoSinkMap.put(handleId, new proxyVideoSinks());
+    videoSinkMap.put(handleId, new ProxyVideoSinks());
     pcObserver.setConnection(JanusConnection2);
     sdpObserver.setConnection(JanusConnection2);
     Log.d(TAG, "Peer connection created.");
@@ -755,7 +755,7 @@ public class PeerConnectionClient2 {
     peerConnectionMap.clear();
 
     if(videoSinkMap != null) {
-      for(proxyVideoSinks sink : videoSinkMap.values()) {
+      for(ProxyVideoSinks sink : videoSinkMap.values()) {
         if (sink != null) {
           sink.reset();
         }
@@ -810,7 +810,7 @@ public class PeerConnectionClient2 {
 
   @SuppressWarnings("deprecation") // TODO(sakal): getStats is deprecated.
   private void getStats(final BigInteger handleId) {
-    PeerConnection peerConnection=peerConnectionMap.get(handleId).peerConnection;
+    PeerConnection peerConnection = peerConnectionMap.get(handleId).peerConnection;
     if (peerConnection == null || isError) {
       return;
     }
@@ -946,6 +946,7 @@ public class PeerConnectionClient2 {
       videoSinkMap.get(handleId).setTarget(videoRender);
     });
   }
+
   public void dispose(BigInteger handleId) {
     executor.execute(() -> {
       videoSinkMap.remove(handleId);

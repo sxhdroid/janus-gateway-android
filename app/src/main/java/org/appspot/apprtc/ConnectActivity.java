@@ -103,7 +103,7 @@ public class ConnectActivity extends Activity {
       public void onClick(View v) {
         //Toast.makeText(ConnectActivity.this, "go to audio bridge test!", Toast.LENGTH_SHORT).show();
         TopRTCDemoEnum type=TopRTCDemoEnum.VIDEOLIVE;
-        connectToRoom(type,1234, false, false, false, 0);
+        connectToRoom(type,5678, false, false, false, 0);
       }
     });
 
@@ -436,10 +436,10 @@ public class ConnectActivity extends Activity {
           intent= new Intent(this, AudioBridgeActivity.class);
           break;
         case VIDEOLIVE:
-          intent= new Intent(this, VideoLiveActivity.class);
+          intent= new Intent(this, VideoRoomActivity.class);
           break;
         case VIDEOMEETING:
-          intent= new Intent(this, VideoRoomActivity.class);
+          intent= new Intent(this, VideoRoom2Activity.class);
           break;
         default:
           intent= new Intent(this, VideoRoomActivity.class);
