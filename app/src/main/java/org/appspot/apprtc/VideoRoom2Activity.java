@@ -438,6 +438,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     private void disconnect() {
         if (liveHelper != null) {
             liveHelper.disconnect();
+            liveHelper.release();
         }
         if (iceConnected) {
             setResult(RESULT_OK);
