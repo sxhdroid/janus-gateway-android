@@ -65,7 +65,7 @@ class LiveHelper(private val context: Activity) {
     }
 
     private fun initPeerConnection(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
-                 options: PeerConnectionFactory.Options?, config: LiveConfig? = null) {
+                                   options: PeerConnectionFactory.Options?, config: LiveConfig? = null) {
         // Create peer connection client.
         peerConnectionClient = PeerConnectionClient2(
                 context.applicationContext, eglBase, peerConnectionParameters, object : PeerConnectionClient2.PeerConnectionEvents {
@@ -257,7 +257,7 @@ class LiveHelper(private val context: Activity) {
 
     @JvmOverloads
     fun initLive(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
-                           options: PeerConnectionFactory.Options?, config: LiveConfig? = null) {
+                 options: PeerConnectionFactory.Options?, config: LiveConfig? = null) {
         initVideoRoom()
         initAudioManager()
         initPeerConnection(eglBase, peerConnectionParameters, options, config)

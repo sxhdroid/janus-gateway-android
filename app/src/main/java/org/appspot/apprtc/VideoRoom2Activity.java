@@ -37,6 +37,7 @@ import java.math.BigInteger;
 import java.util.Vector;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 
 /**
  * Activity for JanusVideoRoom setup, call waiting and call view.
@@ -171,11 +172,10 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
             surfaceViewRenderers.add(renderer);
 
             renderer.init(eglBase.getEglBaseContext(), null);
+            renderer.setScalingType(ScalingType.SCALE_ASPECT_FIT);
             if(i == 0) {
-                renderer.setScalingType(ScalingType.SCALE_ASPECT_FILL);
                 renderer.setOnClickListener(view -> toggleCallControlFragmentVisibility());
             } else {
-                renderer.setScalingType(ScalingType.SCALE_ASPECT_FIT);
                 renderer.setZOrderMediaOverlay(true);
                 renderer.setEnableHardwareScaler(true /* enabled */);
             }
@@ -499,7 +499,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
             if(positionVector.get(i) == BigInteger.ZERO) {
                 positionVector.set(i, handleId);
                 SurfaceViewRenderer renderer = surfaceViewRenderers.get(i);
-                if(i != 0) renderer.setBackground(getResources().getDrawable(R.drawable.border));
+                if(i != 0) renderer.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.border, null));
                 renderer.setVisibility(View.VISIBLE);
                 liveHelper.setVideoRender(handleId, renderer);
                 setClickListener(i);
@@ -529,20 +529,13 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 positionVector.set(i, handleId);
 
                 SurfaceViewRenderer renderer = surfaceViewRenderers.get(i);
-                if(i != 0) renderer.setBackground(getResources().getDrawable(R.drawable.border));
+                renderer.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.border, null));
                 renderer.setVisibility(View.VISIBLE);
                 liveHelper.setVideoRender(handleId, renderer);
                 setRendererMirror(i);
                 setClickListener(i);
                 return;
             }
-        }
-
-        if(positionVector.get(0) == BigInteger.ZERO) {
-            positionVector.set(0, handleId);
-            liveHelper.setVideoRender(handleId, surfaceViewRenderers.get(0));
-        } else {
-            Log.d(TAG, "Not enough surfaceView to render the remote stream. handle id is " + handleId);
         }
     }
 
