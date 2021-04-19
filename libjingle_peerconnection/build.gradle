@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.kezong.fat-aar'
 
 def compileNativeCode = "true" == rootProject.property("compile_native_code")
 
@@ -51,6 +52,8 @@ if (compileNativeCode) {
 }
 
 dependencies {
+    embed project(':base_java')
+    embed project(':audio_device_java')
     api project(':base_java')
     api project(':audio_device_java')
 }
