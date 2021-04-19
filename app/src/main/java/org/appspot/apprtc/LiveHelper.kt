@@ -115,11 +115,11 @@ class LiveHelper(private val context: Activity) {
                 }
             }
 
-            override fun onPeerConnectionClosed(handleId: BigInteger) {}
+            override fun onPeerConnectionClosed(handleId: BigInteger?) {}
 
-            override fun onPeerConnectionStatsReady(handleId: BigInteger, reports: Array<out StatsReport>) {}
+            override fun onPeerConnectionStatsReady(handleId: BigInteger?, reports: Array<out StatsReport>) {}
 
-            override fun onPeerConnectionError(handleId: BigInteger, description: String) {
+            override fun onPeerConnectionError(handleId: BigInteger?, description: String) {
                 reportError(description)
             }
 

@@ -799,7 +799,7 @@ public class PeerConnectionClient2 {
     }
     rootEglBase.release();
     Log.d(TAG, "Closing peer connection done.");
-    //events.onPeerConnectionClosed(); fixme:
+    events.onPeerConnectionClosed(null);
     PeerConnectionFactory.stopInternalTracingCapture();
     PeerConnectionFactory.shutdownInternalTracer();
   }
@@ -817,7 +817,7 @@ public class PeerConnectionClient2 {
     boolean success = peerConnection.getStats(new StatsObserver() {
       @Override
       public void onComplete(final StatsReport[] reports) {
-        //events.onPeerConnectionStatsReady(reports); fixme:
+        events.onPeerConnectionStatsReady(handleId, reports);
       }
     }, null);
     if (!success) {
@@ -1020,7 +1020,7 @@ public class PeerConnectionClient2 {
     Log.e(TAG, "Peerconnection error: " + errorMessage);
     executor.execute(() -> {
       if (!isError) {
-        //events.onPeerConnectionError(errorMessage); fixme:
+        events.onPeerConnectionError(null, errorMessage);
         isError = true;
       }
     });
