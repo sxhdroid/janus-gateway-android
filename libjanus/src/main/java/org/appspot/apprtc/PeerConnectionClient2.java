@@ -593,21 +593,7 @@ public class PeerConnectionClient2 {
   private void createMediaConstraintsInternal() {
     // Create video constraints if video call is enabled.
     if (isVideoCallEnabled()) {
-      videoWidth = peerConnectionParameters.videoWidth;
-      videoHeight = peerConnectionParameters.videoHeight;
-      videoFps = peerConnectionParameters.videoFps;
-
-      // If video resolution is not specified, default to HD.
-      if (videoWidth == 0 || videoHeight == 0) {
-        videoWidth = HD_VIDEO_WIDTH;
-        videoHeight = HD_VIDEO_HEIGHT;
-      }
-
-      // If fps is not specified, default to 30.
-      if (videoFps == 0) {
-        videoFps = 30;
-      }
-      Logging.d(TAG, "Capturing format: " + videoWidth + "x" + videoHeight + "@" + videoFps);
+      createVideoConstraints();
     }
 
     // Create audio constraints.
@@ -630,6 +616,25 @@ public class PeerConnectionClient2 {
         new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
     sdpMediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair(
         "OfferToReceiveVideo", Boolean.toString(isVideoCallEnabled())));
+  }
+
+  // Create video constraints
+  private void createVideoConstraints() {
+    videoWidth = peerConnectionParameters.videoWidth;
+    videoHeight = peerConnectionParameters.videoHeight;
+    videoFps = peerConnectionParameters.videoFps;
+
+    // If video resolution is not specified, default to HD.
+    if (videoWidth == 0 || videoHeight == 0) {
+      videoWidth = HD_VIDEO_WIDTH;
+      videoHeight = HD_VIDEO_HEIGHT;
+    }
+
+    // If fps is not specified, default to 30.
+    if (videoFps == 0) {
+      videoFps = 30;
+    }
+    Logging.d(TAG, "Capturing format: " + videoWidth + "x" + videoHeight + "@" + videoFps);
   }
 
   private void createPeerConnectionInternal(final BigInteger handleId) {
@@ -958,6 +963,7 @@ public class PeerConnectionClient2 {
     this.videoCapturer = videoCapturer;
     if (videoCapturer != null) {
       executor.execute(() -> {
+        createVideoConstraints();
         videoSinkMap.put(localHandleId, new ProxyVideoSinks());
         createVideoTrack(localHandleId, videoCapturer);
         events.onLocalRender(localHandleId);
