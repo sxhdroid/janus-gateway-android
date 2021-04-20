@@ -13,6 +13,7 @@ import org.appspot.apprtc.janus.JanusUtils
 import org.json.JSONObject
 import org.webrtc.*
 import java.io.IOException
+import java.lang.IllegalArgumentException
 import java.math.BigInteger
 
 /**
@@ -21,7 +22,7 @@ import java.math.BigInteger
  * @author ym@163.com
  * @date   4/15/21 3:15 PM
  */
-class LiveHelper(private val context: Activity) {
+class JanusClient private constructor(private val context: Activity, private val builder: Builder) {
 
     private val tag = "LiveHelper"
 
@@ -39,6 +40,7 @@ class LiveHelper(private val context: Activity) {
     init {
         initVideoRoom()
         initAudioManager()
+        initLive(builder.eglBase!!, builder.peerConnectionParameters!!, builder.options)
     }
 
     private fun initVideoRoom() {
@@ -65,7 +67,7 @@ class LiveHelper(private val context: Activity) {
     }
 
     private fun initPeerConnection(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
-                                   options: PeerConnectionFactory.Options?, config: LiveConfig? = null) {
+                                   options: PeerConnectionFactory.Options?) {
         // Create peer connection client.
         peerConnectionClient = PeerConnectionClient2(
                 context.applicationContext, eglBase, peerConnectionParameters, object : PeerConnectionClient2.PeerConnectionEvents {
@@ -131,8 +133,9 @@ class LiveHelper(private val context: Activity) {
                 context.runOnUiThread { onLiveCallback?.onRemoteRender(handleId) }
             }
         })
-        peerConnectionClient!!.createPeerConnectionFactory(options ?: PeerConnectionFactory.Options())
-        peerConnectionClient!!.setVideoCapturer(createVideoCapturer(config ?: LiveConfig()))
+        peerConnectionClient!!.createPeerConnectionFactory(options
+                ?: PeerConnectionFactory.Options())
+        peerConnectionClient!!.setVideoCapturer(createVideoCapturer())
     }
 
     private fun initAudioManager() {
@@ -158,9 +161,9 @@ class LiveHelper(private val context: Activity) {
         // TODO(henrika): add callback handler.
     }
 
-    private fun createVideoCapturer(config: LiveConfig): VideoCapturer? {
+    private fun createVideoCapturer(): VideoCapturer? {
         val videoCapturer: VideoCapturer?
-        val videoFileAsCamera = config.videoFileAsCamera
+        val videoFileAsCamera = builder.videoFileAsCamera
         videoCapturer = if (videoFileAsCamera != null) {
             try {
                 FileVideoCapturer(videoFileAsCamera)
@@ -168,14 +171,14 @@ class LiveHelper(private val context: Activity) {
                 reportError("Failed to open video file for emulated camera")
                 return null
             }
-        } else if (config.screenCaptureEnabled) {
+        } else if (builder.screenCaptureEnabled) {
             return createScreenCapturer()
-        } else if (config.useCamera2) {
+        } else if (builder.useCamera2) {
             Logging.d(tag, "Creating capturer using camera2 API.")
             createCameraCapturer(Camera2Enumerator(context))
         } else {
             Logging.d(tag, "Creating capturer using camera1 API.")
-            createCameraCapturer(Camera1Enumerator(config.captureToTexture))
+            createCameraCapturer(Camera1Enumerator(builder.captureToTexture))
         }
         if (videoCapturer == null) {
             reportError("Failed to open camera")
@@ -255,12 +258,11 @@ class LiveHelper(private val context: Activity) {
         }
     }
 
-    @JvmOverloads
-    fun initLive(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
-                 options: PeerConnectionFactory.Options?, config: LiveConfig? = null) {
+    private fun initLive(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
+                 options: PeerConnectionFactory.Options?) {
         initVideoRoom()
         initAudioManager()
-        initPeerConnection(eglBase, peerConnectionParameters, options, config)
+        initPeerConnection(eglBase, peerConnectionParameters, options)
     }
 
     /**
@@ -286,7 +288,8 @@ class LiveHelper(private val context: Activity) {
     }
 
     // Disconnect from remote resources, dispose of local resources, and exit.
-    fun disconnect() {
+    @JvmOverloads
+    fun disconnect(stopCapture: Boolean = true) {
         videoRoomClient?.disconnectFromServer()
         peerConnectionClient?.close()
         audioManager?.stop()
@@ -312,6 +315,10 @@ class LiveHelper(private val context: Activity) {
         peerConnectionClient?.setAudioEnabled(enabled)
     }
 
+    fun setVideoEnabled(enabled: Boolean) {
+        peerConnectionClient?.setVideoEnabled(enabled)
+    }
+
     fun setVideoRender(handleId: BigInteger, videoRender: SurfaceViewRenderer?) {
         peerConnectionClient?.setVideoRender(handleId, videoRender)
     }
@@ -328,21 +335,84 @@ class LiveHelper(private val context: Activity) {
         mediaProjectionPermissionResultData = null
     }
 
-    /**
-     * 直播配置 VideoSource
-     *
-     * 四种推流数据源设置判断优先级为：文件直播推流 -> 截屏推流 -> Camera2 -> Camera
-     * <br/>默认使用 Camera API，不添加 addCallbackBuffer 的方式设置推流 VideoSource
-     */
-    class LiveConfig {
+    class Builder(private val activity: Activity) {
+
+        /* 四种推流数据源设置判断优先级为：文件直播推流 -> 截屏推流 -> Camera2 -> Camera.
+        默认使用 Camera API，不添加 addCallbackBuffer 的方式设置推流 VideoSource*/
         /** 使用Camera API时有效。是否使用 addCallbackBuffer 回调，true不使用，false使用 */
-        var captureToTexture: Boolean = true
+        internal var captureToTexture: Boolean = true
         /** 是否使用 Camera2 API */
-        var useCamera2: Boolean = false
+        internal var useCamera2: Boolean = false
         /** 是否是截屏推流，true：使用截屏推流，false，不使用 */
-        var screenCaptureEnabled: Boolean = false
+        internal var screenCaptureEnabled: Boolean = false
         /** 是否是文件推流，若为文件推流，文件地址不为空 */
-        var videoFileAsCamera: String? = null
+        internal var videoFileAsCamera: String? = null
+
+        internal var eglBase: EglBase? = null
+        internal var peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters? = null
+        internal var options:PeerConnectionFactory.Options? = null
+
+        fun setEGlBase(eglBase: EglBase): Builder {
+            this.eglBase = eglBase
+            return this
+        }
+
+        fun setPeerConnectionParameter(parameters: PeerConnectionClient2.PeerConnectionParameters): Builder {
+            this.peerConnectionParameters = parameters
+            return this
+        }
+
+        fun setPeerConnectionOptions(options: PeerConnectionFactory.Options?): Builder {
+            this.options = options
+            return this
+        }
+
+        /**
+         * 使用Camera API时有效。是否使用 addCallbackBuffer 回调
+         *
+         * @param captureToTexture true不使用,false使用。默认为 true
+         */
+        fun setCaptureToTexture(captureToTexture: Boolean): Builder {
+            this.captureToTexture = captureToTexture
+            return this
+        }
+
+        /**
+         * 是否使用 Camera2 API
+         *
+         *  @param useCamera2 true不使用,false使用。默认为 false
+         */
+        fun setUseCamera2(useCamera2: Boolean): Builder {
+            this.useCamera2 = useCamera2
+            return this
+        }
+
+        /**
+         * 是否是截屏推流, 设置截屏推流后摄像头推流无效
+         *
+         * @param screenCaptureEnabled true：使用截屏推流，false，不使用. 默认不使用
+         */
+        fun setScreenCaptureEnabled(screenCaptureEnabled: Boolean): Builder {
+            this.screenCaptureEnabled = screenCaptureEnabled
+            return this
+        }
+
+        /**
+         *  是否文件推流，设置文件推流后，摄像头和截屏设置无效
+         *
+         *  @param videoFile 推流文件路径不为 null 时使用
+         */
+        fun setVideoFileAsCamera(videoFile: String) : Builder{
+            this.videoFileAsCamera = videoFile
+            return this
+        }
+
+        fun builder(): JanusClient {
+            if (eglBase == null || peerConnectionParameters == null) {
+                throw IllegalArgumentException("eglBase must not null!")
+            }
+            return JanusClient(activity, this)
+        }
     }
 
     interface OnLiveCallback {

@@ -120,7 +120,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
 
     private boolean isBackCamera = false;
 
-    private LiveHelper liveHelper = null;
+    private JanusClient janusClient = null;
 
     private Toast logToast;
     @Nullable
@@ -259,9 +259,11 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
         ft.add(R.id.call_fragment_container, callFragment);
         ft.commit();
 
-        liveHelper = new LiveHelper(this);
-        liveHelper.initLive(eglBase, peerConnectionParameters, null);
-        liveHelper.setOnLiveCallback(new LiveHelper.OnLiveCallback() {
+        janusClient = new JanusClient.Builder(this)
+                .setEGlBase(eglBase)
+                .setPeerConnectionParameter(peerConnectionParameters)
+                .builder();
+        janusClient.setOnLiveCallback(new JanusClient.OnLiveCallback() {
             @Override
             public void onLocalRender(@NotNull BigInteger handleId) {
                 VideoRoom2Activity.this.onLocalRender(handleId);
@@ -310,16 +312,16 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
 
     @TargetApi(21)
     private void startScreenCapture() {
-        if (liveHelper != null) {
-            liveHelper.startScreenCapture(CAPTURE_PERMISSION_REQUEST_CODE);
+        if (janusClient != null) {
+            janusClient.startScreenCapture(CAPTURE_PERMISSION_REQUEST_CODE);
         }
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAPTURE_PERMISSION_REQUEST_CODE && resultCode == RESULT_OK) {
-            if (liveHelper != null) {
-                liveHelper.updateMediaProjectionResult(data);
+            if (janusClient != null) {
+                janusClient.updateMediaProjectionResult(data);
             }
             startCall();
         }
@@ -330,8 +332,8 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
         super.onStop();
         // Don't stop the video when using screencapture to allow user to show other apps to the remote
         // end.
-        if (liveHelper != null && !screencaptureEnabled) {
-            liveHelper.stopVideoSource();
+        if (janusClient != null && !screencaptureEnabled) {
+            janusClient.stopVideoSource();
         }
     }
 
@@ -339,15 +341,15 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     public void onStart() {
         super.onStart();
         // Video is not paused for screencapture. See onPause.
-        if (liveHelper != null && !screencaptureEnabled) {
-            liveHelper.startVideoSource();
+        if (janusClient != null && !screencaptureEnabled) {
+            janusClient.startVideoSource();
         }
     }
 
     @Override
     protected void onDestroy() {
         Thread.setDefaultUncaughtExceptionHandler(null);
-        disconnect();
+        disconnect(true);
         if (logToast != null) {
             logToast.cancel();
         }
@@ -357,13 +359,13 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     // CallFragment.OnCallEvents interface implementation.
     @Override
     public void onCallHangUp() {
-        disconnect();
+        disconnect(false);
     }
 
     @Override
     public void onCameraSwitch() {
-        if (liveHelper != null) {
-            liveHelper.switchCamera();
+        if (janusClient != null) {
+            janusClient.switchCamera();
             int index = positionVector.indexOf(localHandleId);
             if(isBackCamera) {
                 isBackCamera = false;
@@ -382,16 +384,16 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
 
     @Override
     public void onCaptureFormatChange(int width, int height, int framerate) {
-        if (liveHelper != null) {
-            liveHelper.changeCaptureFormat(width, height, framerate);
+        if (janusClient != null) {
+            janusClient.changeCaptureFormat(width, height, framerate);
         }
     }
 
     @Override
     public boolean onToggleMic() {
-        if (liveHelper != null) {
+        if (janusClient != null) {
             micEnabled = !micEnabled;
-            liveHelper.setAudioEnabled(micEnabled);
+            janusClient.setAudioEnabled(micEnabled);
         }
         return micEnabled;
     }
@@ -414,18 +416,18 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     }
 
     private void startCall() {
-        if (liveHelper == null) {
+        if (janusClient == null) {
             Log.e(TAG, "AppRTC client is not allocated for a call.");
             return;
         }
-        liveHelper.startCall(roomUrl, roomId, userId, maxVideoRoomUsers);
+        janusClient.startCall(roomUrl, roomId, userId, maxVideoRoomUsers);
     }
 
     // Should be called from UI thread
     private void callConnected() {
         final long delta = System.currentTimeMillis() - callStartedTimeMs;
         Log.i(TAG, "Call connected: delay=" + delta + "ms");
-        if (liveHelper == null) {
+        if (janusClient == null) {
             Log.w(TAG, "Call is connected in closed or error state");
             return;
         }
@@ -435,10 +437,10 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     }
 
     // Disconnect from remote resources, dispose of local resources, and exit.
-    private void disconnect() {
-        if (liveHelper != null) {
-            liveHelper.disconnect();
-            liveHelper.release();
+    private void disconnect(Boolean stopCapture) {
+        if (janusClient != null) {
+            janusClient.disconnect(stopCapture);
+            janusClient.release();
         }
         if (iceConnected) {
             setResult(RESULT_OK);
@@ -471,13 +473,13 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
         SurfaceViewRenderer renderer = surfaceViewRenderers.get(pipIndex);
 
         BigInteger id = positionVector.get(pipIndex);
-        liveHelper.setVideoRender(id, surfaceViewRenderers.get(0));
+        janusClient.setVideoRender(id, surfaceViewRenderers.get(0));
         if (positionVector.get(0) == BigInteger.ZERO) {
             renderer.setBackground(null);
             renderer.setVisibility(View.INVISIBLE);
             removeClickListener(pipIndex);
         } else {
-            liveHelper.setVideoRender(positionVector.get(0), renderer);
+            janusClient.setVideoRender(positionVector.get(0), renderer);
         }
 
         if(id == localHandleId) {
@@ -501,7 +503,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 SurfaceViewRenderer renderer = surfaceViewRenderers.get(i);
                 if(i != 0) renderer.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.border, null));
                 renderer.setVisibility(View.VISIBLE);
-                liveHelper.setVideoRender(handleId, renderer);
+                janusClient.setVideoRender(handleId, renderer);
                 setClickListener(i);
                 return;
             }
@@ -531,7 +533,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 SurfaceViewRenderer renderer = surfaceViewRenderers.get(i);
                 renderer.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.border, null));
                 renderer.setVisibility(View.VISIBLE);
-                liveHelper.setVideoRender(handleId, renderer);
+                janusClient.setVideoRender(handleId, renderer);
                 setRendererMirror(i);
                 setClickListener(i);
                 return;
@@ -552,7 +554,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
 
     private void onLeftInternal(final BigInteger handleId){
         if(handleId == localHandleId) {
-            disconnect();
+            disconnect(true);
             return;
         }
         for(int index = 0; index < maxVideoRoomUsers; index++) {
@@ -563,7 +565,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 int step = index == 0 && positionVector.get(index + 1) == localHandleId ? 2 : 1;
                 if(positionVector.get(index + step) == BigInteger.ZERO) break;
 
-                liveHelper.setVideoRender(positionVector.get(index + step), surfaceViewRenderers.get(index));
+                janusClient.setVideoRender(positionVector.get(index + step), surfaceViewRenderers.get(index));
                 if(positionVector.get(index + step) == localHandleId) {
                     removeRendererMirror(index + step);
                     setRendererMirror(index);
@@ -571,8 +573,8 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 positionVector.set(index, positionVector.get(index + step));
                 index += step;
             }
-            liveHelper.setVideoRender(handleId, null);
-            liveHelper.dispose(handleId);
+            janusClient.setVideoRender(handleId, null);
+            janusClient.dispose(handleId);
             removeClickListener(index);
 
             SurfaceViewRenderer renderer = surfaceViewRenderers.get(index);

@@ -151,9 +151,6 @@ public class PeerConnectionClient2 {
   private boolean preferIsac;
   private boolean videoCapturerStopped;
   private boolean isError;
-  @Nullable
-  private VideoSink localSink;
-  @Nullable private List<VideoSink> remoteSinks;
   private int videoWidth;
   private int videoHeight;
   private int videoFps;
@@ -191,6 +188,8 @@ public class PeerConnectionClient2 {
   // recorded audio samples to an output file.
   @Nullable
   private RecordedAudioToFileController saveRecordedAudioToFile = null;
+
+  private BigInteger localHandleId = BigInteger.valueOf(Long.MAX_VALUE);
 
   /**
    * Peer connection parameters.
@@ -652,15 +651,13 @@ public class PeerConnectionClient2 {
 
     List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
     if (isVideoCallEnabled()) {
-      peerConnection.addTrack(createVideoTrack(handleId, videoCapturer), mediaStreamLabels);
-      events.onLocalRender(handleId);
-      // We can add the renderers right away because we don't need to wait for an
-      // answer to get the remote track.
-     /*remoteVideoTrack = getRemoteVideoTrack(handleId);
-      remoteVideoTrack.setEnabled(renderVideo);
-      for (VideoSink remoteSink : remoteSinks) {
-        remoteVideoTrack.addSink(remoteSink);
-      }*/
+      if (localVideoTrack == null) {
+        createVideoTrack(handleId, videoCapturer);
+      }
+      peerConnection.addTrack(localVideoTrack, mediaStreamLabels);
+      if (videoSinkMap.get(localHandleId) == null) {
+        events.onLocalRender(handleId);
+      }
     }
     peerConnection.addTrack(createAudioTrack(), mediaStreamLabels);
     if (isVideoCallEnabled()) {
@@ -790,8 +787,6 @@ public class PeerConnectionClient2 {
       surfaceTextureHelper = null;
     }
 
-    localSink = null;
-    remoteSinks = null;
     Log.d(TAG, "Closing peer connection factory.");
     if (factory != null) {
       factory.dispose();
@@ -961,6 +956,13 @@ public class PeerConnectionClient2 {
 
   public void setVideoCapturer(@Nullable VideoCapturer videoCapturer) {
     this.videoCapturer = videoCapturer;
+    if (videoCapturer != null) {
+      executor.execute(() -> {
+        videoSinkMap.put(localHandleId, new ProxyVideoSinks());
+        createVideoTrack(localHandleId, videoCapturer);
+        events.onLocalRender(localHandleId);
+      });
+    }
   }
 
   public void stopVideoSource() {
