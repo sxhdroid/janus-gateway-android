@@ -38,7 +38,7 @@ import androidx.annotation.Nullable;
  * AppRTCProximitySensor manages functions related to Bluetoth devices in the
  * AppRTC demo.
  */
-public class AppRTCBluetoothManager {
+class AppRTCBluetoothManager {
   private static final String TAG = "AppRTCBluetoothManager";
 
   // Timeout interval for starting or stopping audio to a Bluetooth SCO device.

@@ -32,7 +32,7 @@ import androidx.annotation.Nullable;
 /**
  * AppRTCAudioManager manages all audio related parts of the AppRTC demo.
  */
-public class AppRTCAudioManager {
+class AppRTCAudioManager {
   private static final String TAG = "AppRTCAudioManager";
   public static final String SPEAKERPHONE_AUTO = "auto";
   public static final String SPEAKERPHONE_TRUE = "true";

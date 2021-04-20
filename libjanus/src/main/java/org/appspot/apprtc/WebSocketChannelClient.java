@@ -27,7 +27,7 @@ import de.tavendo.autobahn.WebSocketOptions;
  * passed in a constructor, otherwise exception will be thrown.
  * All events are dispatched on the same thread.
  */
-public class WebSocketChannelClient {
+class WebSocketChannelClient {
     private static final String TAG = "WebSocketChannelClient";
     private static final int CLOSE_TIMEOUT = 1000;
     private final WebSocketChannelEvents events;

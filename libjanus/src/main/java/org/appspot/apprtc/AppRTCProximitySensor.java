@@ -33,7 +33,7 @@ import androidx.annotation.Nullable;
  * A LUX-value more than the threshold means the proximity sensor returns "FAR".
  * Anything less than the threshold value and the sensor  returns "NEAR".
  */
-public class AppRTCProximitySensor implements SensorEventListener {
+class AppRTCProximitySensor implements SensorEventListener {
   private static final String TAG = "AppRTCProximitySensor";
 
   // This class should be created, started and stopped on one thread

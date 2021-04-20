@@ -25,7 +25,7 @@ import static org.appspot.apprtc.janus.JanusUtils.convertSdpToJson;
 import static org.appspot.apprtc.janus.JanusUtils.jsonPut;
 import static org.appspot.apprtc.janus.JanusUtils.randomString;
 
-public class VideoRoomClient implements WebSocketChannelEvents {
+class VideoRoomClient implements WebSocketChannelEvents {
 
     private static final String TAG = "VideoRoomClient";
 
