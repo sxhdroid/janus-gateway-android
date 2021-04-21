@@ -264,6 +264,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 .setVideoWidth(videoWidth)
                 .setVideoHeight(videoHeight)
                 .setVideoFps(30)
+                .setVideoMaxBitrate(8000)
                 .setAudioStartBitrate(44)
                 .builder();
         janusClient.setOnLiveCallback(new JanusClient.OnLiveCallback() {
@@ -425,7 +426,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
             Log.e(TAG, "AppRTC client is not allocated for a call.");
             return;
         }
-        janusClient.startCall(roomUrl, roomId, userId, maxVideoRoomUsers);
+        janusClient.startCall(roomUrl, roomId, userId);
     }
 
     // Should be called from UI thread

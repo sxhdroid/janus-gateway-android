@@ -279,7 +279,8 @@ class JanusClient private constructor(private val context: Activity, private val
         context.startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), requestCode)
     }
 
-    fun startCall(roomUrl: String, roomId: Long, userId: String?, maxVideoRoomUsers: Int) {
+    @JvmOverloads
+    fun startCall(roomUrl: String, roomId: Long, userId: String?, maxVideoRoomUsers: Int = 0) {
         callStartedTimeMs = System.currentTimeMillis()
         val connectionParameters = JanusConnectionParameters(roomUrl, roomId, userId, maxVideoRoomUsers)
 
@@ -439,8 +440,8 @@ class JanusClient private constructor(private val context: Activity, private val
             return this
         }
 
-        fun setVideoMaxBitrate(bitrate: Int): Builder {
-            peerConnectionParameters.videoMaxBitrate = bitrate
+        fun setVideoMaxBitrate(maxBitrateKbps: Int): Builder {
+            peerConnectionParameters.videoMaxBitrate = maxBitrateKbps
             return this
         }
 
