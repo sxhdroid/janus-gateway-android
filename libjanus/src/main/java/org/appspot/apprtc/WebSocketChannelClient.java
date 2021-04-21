@@ -73,7 +73,7 @@ class WebSocketChannelClient {
     public void connect(final String wsUrl, final String [] subProtocols){
         checkIfCalledOnValidThread();
 
-        if (state != WebSocketConnectionState.NEW) {
+        if (state == WebSocketConnectionState.CONNECTED) {
             Log.e(TAG, "WebSocket is already connected.");
             return;
         }
