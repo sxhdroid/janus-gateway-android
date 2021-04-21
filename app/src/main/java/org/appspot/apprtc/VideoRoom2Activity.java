@@ -261,7 +261,10 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
 
         janusClient = new JanusClient.Builder(this)
                 .setEGlBase(eglBase)
-                .setPeerConnectionParameter(peerConnectionParameters)
+                .setVideoWidth(videoWidth)
+                .setVideoHeight(videoHeight)
+                .setVideoFps(30)
+                .setAudioStartBitrate(44)
                 .builder();
         janusClient.setOnLiveCallback(new JanusClient.OnLiveCallback() {
             @Override

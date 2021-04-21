@@ -101,13 +101,6 @@ public class PeerConnectionClient2 {
   public static final String AUDIO_TRACK_ID = "ARDAMSa0";
   public static final String VIDEO_TRACK_TYPE = "video";
   private static final String TAG = "PCRTCClient";
-  private static final String VIDEO_CODEC_VP8 = "VP8";
-  private static final String VIDEO_CODEC_VP9 = "VP9";
-  private static final String VIDEO_CODEC_H264 = "H264";
-  private static final String VIDEO_CODEC_H264_BASELINE = "H264 Baseline";
-  private static final String VIDEO_CODEC_H264_HIGH = "H264 High";
-  private static final String AUDIO_CODEC_OPUS = "opus";
-  private static final String AUDIO_CODEC_ISAC = "ISAC";
   private static final String VIDEO_CODEC_PARAM_START_BITRATE = "x-google-start-bitrate";
   private static final String VIDEO_FLEXFEC_FIELDTRIAL =
       "WebRTC-FlexFEC-03-Advertised/Enabled/WebRTC-FlexFEC-03/Enabled/";
@@ -217,37 +210,43 @@ public class PeerConnectionClient2 {
    * Peer connection parameters.
    */
   public static class PeerConnectionParameters {
-    public final boolean videoCallEnabled;
-    public final boolean loopback;
-    public final boolean tracing;
-    public final int videoWidth;
-    public final int videoHeight;
-    public final int videoFps;
-    public final int videoMaxBitrate;
-    public final String videoCodec;
-    public final boolean videoCodecHwAcceleration;
-    public final boolean videoFlexfecEnabled;
-    public final int audioStartBitrate;
-    public final String audioCodec;
-    public final boolean noAudioProcessing;
-    public final boolean aecDump;
-    public final boolean saveInputAudioToFile;
-    public final boolean useOpenSLES;
-    public final boolean disableBuiltInAEC;
-    public final boolean disableBuiltInAGC;
-    public final boolean disableBuiltInNS;
-    public final boolean disableWebRtcAGCAndHPF;
-    public final boolean enableRtcEventLog;
-    public final boolean useLegacyAudioDevice;
-    private final DataChannelParameters dataChannelParameters;
+    public boolean videoCallEnabled;
+    public boolean loopback;
+    public boolean tracing;
+    public int videoWidth;
+    public int videoHeight;
+    public int videoFps;
+    public int videoMaxBitrate;
+    public String videoCodec;
+    public boolean videoCodecHwAcceleration;
+    public boolean videoFlexfecEnabled;
+    public int audioStartBitrate;
+    public String audioCodec;
+    public boolean noAudioProcessing;
+    public boolean aecDump;
+    public boolean saveInputAudioToFile;
+    public boolean useOpenSLES;
+    public boolean disableBuiltInAEC;
+    public boolean disableBuiltInAGC;
+    public boolean disableBuiltInNS;
+    public boolean disableWebRtcAGCAndHPF;
+    public boolean enableRtcEventLog;
+    public boolean useLegacyAudioDevice;
+    public DataChannelParameters dataChannelParameters;
+
+    public PeerConnectionParameters() {
+      this(true, false, false, 0, 0, 30, 0, "VP8", true
+              , false, 44, "OPUS", false, false, false, false
+              , false, false, false, false, false, false, null);
+    }
 
     public PeerConnectionParameters(boolean videoCallEnabled, boolean loopback, boolean tracing,
-        int videoWidth, int videoHeight, int videoFps, int videoMaxBitrate, String videoCodec,
-        boolean videoCodecHwAcceleration, boolean videoFlexfecEnabled, int audioStartBitrate,
-        String audioCodec, boolean noAudioProcessing, boolean aecDump, boolean saveInputAudioToFile,
-        boolean useOpenSLES, boolean disableBuiltInAEC, boolean disableBuiltInAGC,
-        boolean disableBuiltInNS, boolean disableWebRtcAGCAndHPF, boolean enableRtcEventLog,
-        boolean useLegacyAudioDevice, DataChannelParameters dataChannelParameters) {
+                                    int videoWidth, int videoHeight, int videoFps, int videoMaxBitrate, String videoCodec,
+                                    boolean videoCodecHwAcceleration, boolean videoFlexfecEnabled, int audioStartBitrate,
+                                    String audioCodec, boolean noAudioProcessing, boolean aecDump, boolean saveInputAudioToFile,
+                                    boolean useOpenSLES, boolean disableBuiltInAEC, boolean disableBuiltInAGC,
+                                    boolean disableBuiltInNS, boolean disableWebRtcAGCAndHPF, boolean enableRtcEventLog,
+                                    boolean useLegacyAudioDevice, DataChannelParameters dataChannelParameters) {
       this.videoCallEnabled = videoCallEnabled;
       this.loopback = loopback;
       this.tracing = tracing;
@@ -458,7 +457,7 @@ public class PeerConnectionClient2 {
 
     // Check if ISAC is used by default.
     preferIsac = peerConnectionParameters.audioCodec != null
-        && peerConnectionParameters.audioCodec.equals(AUDIO_CODEC_ISAC);
+        && peerConnectionParameters.audioCodec.equals(CodecType.Audio.AUDIO_CODEC_ISAC);
 
     final AudioDeviceModule adm = peerConnectionParameters.useLegacyAudioDevice
         ? createLegacyAudioDevice()
@@ -469,7 +468,7 @@ public class PeerConnectionClient2 {
       Log.d(TAG, "Factory networkIgnoreMask option: " + options.networkIgnoreMask);
     }
     final boolean enableH264HighProfile =
-        VIDEO_CODEC_H264_HIGH.equals(peerConnectionParameters.videoCodec);
+        CodecType.Video.VIDEO_CODEC_H264_HIGH.equals(peerConnectionParameters.videoCodec);
     final VideoEncoderFactory encoderFactory;
     final VideoDecoderFactory decoderFactory;
 
@@ -951,7 +950,7 @@ public class PeerConnectionClient2 {
       }
       String sdpDescription = sdp.description;
       if (preferIsac) {
-        sdpDescription = preferCodec(sdpDescription, AUDIO_CODEC_ISAC, true);
+        sdpDescription = preferCodec(sdpDescription, CodecType.Audio.AUDIO_CODEC_ISAC, true);
       }
       if (isVideoCallEnabled()) {
         sdpDescription =
@@ -959,7 +958,7 @@ public class PeerConnectionClient2 {
       }
       if (peerConnectionParameters.audioStartBitrate > 0) {
         sdpDescription = setStartBitrate(
-            AUDIO_CODEC_OPUS, false, sdpDescription, peerConnectionParameters.audioStartBitrate);
+            CodecType.Audio.AUDIO_CODEC_OPUS, false, sdpDescription, peerConnectionParameters.audioStartBitrate);
       }
       Log.d(TAG, "Set remote SDP.");
       SessionDescription sdpRemote = new SessionDescription(sdp.type, sdpDescription);
@@ -1109,15 +1108,13 @@ public class PeerConnectionClient2 {
 
   private static String getSdpVideoCodecName(PeerConnectionParameters parameters) {
     switch (parameters.videoCodec) {
-      case VIDEO_CODEC_VP8:
-        return VIDEO_CODEC_VP8;
-      case VIDEO_CODEC_VP9:
-        return VIDEO_CODEC_VP9;
-      case VIDEO_CODEC_H264_HIGH:
-      case VIDEO_CODEC_H264_BASELINE:
-        return VIDEO_CODEC_H264;
+      case CodecType.Video.VIDEO_CODEC_VP9:
+        return CodecType.Video.VIDEO_CODEC_VP9;
+      case CodecType.Video.VIDEO_CODEC_H264_HIGH:
+      case CodecType.Video.VIDEO_CODEC_H264_BASELINE:
+        return CodecType.Video.VIDEO_CODEC_H264;
       default:
-        return VIDEO_CODEC_VP8;
+        return CodecType.Video.VIDEO_CODEC_VP8;
     }
   }
 
@@ -1461,7 +1458,7 @@ public class PeerConnectionClient2 {
       }
       String sdpDescription = origSdp.description;
       if (preferIsac) {
-        sdpDescription = preferCodec(sdpDescription, AUDIO_CODEC_ISAC, true);
+        sdpDescription = preferCodec(sdpDescription, CodecType.Audio.AUDIO_CODEC_ISAC, true);
       }
       if (isVideoCallEnabled()) {
         sdpDescription =

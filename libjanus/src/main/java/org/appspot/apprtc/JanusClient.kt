@@ -40,7 +40,7 @@ class JanusClient private constructor(private val context: Activity, private val
     init {
         initVideoRoom()
         initAudioManager()
-        initLive(builder.eglBase!!, builder.peerConnectionParameters!!, builder.options)
+        initLive(builder.eglBase!!, builder.peerConnectionParameters, builder.options)
     }
 
     private fun initVideoRoom() {
@@ -351,7 +351,7 @@ class JanusClient private constructor(private val context: Activity, private val
         internal var videoFileAsCamera: String? = null
 
         internal var eglBase: EglBase? = null
-        internal var peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters? = null
+        internal var peerConnectionParameters = PeerConnectionClient2.PeerConnectionParameters()
         internal var options:PeerConnectionFactory.Options? = null
 
         fun setEGlBase(eglBase: EglBase): Builder {
@@ -409,8 +409,123 @@ class JanusClient private constructor(private val context: Activity, private val
             return this
         }
 
+        fun setVideoCallEnabled(enabled: Boolean): Builder {
+            peerConnectionParameters.videoCallEnabled = enabled
+            return this
+        }
+
+        fun setLoopBack(loopback: Boolean): Builder {
+            peerConnectionParameters.loopback = loopback
+            return this
+        }
+
+        fun setTracing(tracing: Boolean): Builder {
+            peerConnectionParameters.tracing = tracing
+            return this
+        }
+
+        fun setVideoWidth(width: Int): Builder {
+            peerConnectionParameters.videoWidth = width
+            return this
+        }
+
+        fun setVideoHeight(height: Int): Builder {
+            peerConnectionParameters.videoHeight = height
+            return this
+        }
+
+        fun setVideoFps(fps: Int): Builder {
+            peerConnectionParameters.videoFps = fps
+            return this
+        }
+
+        fun setVideoMaxBitrate(bitrate: Int): Builder {
+            peerConnectionParameters.videoMaxBitrate = bitrate
+            return this
+        }
+
+        fun setVideoCodec(@CodecType.Video videoCodec: String): Builder {
+            peerConnectionParameters.videoCodec = videoCodec
+            return this
+        }
+
+        fun setVideoCodecHwAcceleration(hwAcceleration: Boolean): Builder {
+            peerConnectionParameters.videoCodecHwAcceleration = hwAcceleration
+            return this
+        }
+
+        fun setVideoFlexFecEnabled(videoFlexFecEnabled: Boolean): Builder {
+            peerConnectionParameters.videoFlexfecEnabled = videoFlexFecEnabled
+            return this
+        }
+
+        fun setAudioStartBitrate(audioStartBitrate: Int): Builder {
+            peerConnectionParameters.audioStartBitrate = audioStartBitrate
+            return this
+        }
+
+        fun setAudioCodec(@CodecType.Audio audioCodec: String): Builder {
+            peerConnectionParameters.audioCodec = audioCodec
+            return this
+        }
+
+        fun setAudioProcess(audioProcessing: Boolean): Builder {
+            peerConnectionParameters.noAudioProcessing = audioProcessing
+            return this
+        }
+
+        fun setAECDump(aecDump: Boolean): Builder {
+            peerConnectionParameters.aecDump = aecDump
+            return this
+        }
+
+        fun setAudioToFile(saveAudioToFile: Boolean): Builder {
+            peerConnectionParameters.saveInputAudioToFile = saveAudioToFile
+            return this
+        }
+
+        fun setUserOpenSLES(useOpenSLES: Boolean): Builder {
+            peerConnectionParameters.useOpenSLES = useOpenSLES
+            return this
+        }
+
+        fun setDisableBuiltInAEC(disableBuiltInAEC: Boolean): Builder {
+            peerConnectionParameters.disableBuiltInAEC = disableBuiltInAEC
+            return this
+        }
+
+        fun setDisableBuiltInAGC(disableBuiltInAGC: Boolean): Builder {
+            peerConnectionParameters.disableBuiltInAGC = disableBuiltInAGC
+            return this
+        }
+
+        fun setDisableBuiltInNS(disableBuiltInNS: Boolean): Builder {
+            peerConnectionParameters.disableBuiltInNS = disableBuiltInNS
+            return this
+        }
+
+        fun setDisableWebRtcAGCAndHPF(disableWebRtcAGCAndHPF: Boolean): Builder {
+            peerConnectionParameters.disableWebRtcAGCAndHPF = disableWebRtcAGCAndHPF
+            return this
+        }
+
+        fun setEnableRtcEventLog(enableRtcEventLog: Boolean): Builder {
+            peerConnectionParameters.enableRtcEventLog = enableRtcEventLog
+            return this
+        }
+
+        fun setUseLegacyAudioDevice(useLegacyAudioDevice: Boolean): Builder {
+            peerConnectionParameters.useLegacyAudioDevice = useLegacyAudioDevice
+            return this
+        }
+
+        fun setDataChannelParameters(dataChannelParameters: PeerConnectionClient2.DataChannelParameters): Builder {
+            peerConnectionParameters.dataChannelParameters = dataChannelParameters
+            return this
+        }
+
         fun builder(): JanusClient {
-            if (eglBase == null || peerConnectionParameters == null) {
+            if (eglBase == null) {
                 throw IllegalArgumentException("eglBase must not null!")
             }
             return JanusClient(activity, this)
