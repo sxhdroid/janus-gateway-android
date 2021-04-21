@@ -102,7 +102,9 @@ class VideoRoomClient implements WebSocketChannelEvents {
     // Internal transaction functions
     // ----------------------------------------------------------------------------
     private void init() {
-        wsClient = new WebSocketChannelClient(handler, this);
+        if (wsClient == null) {
+            wsClient = new WebSocketChannelClient(handler, this);
+        }
         wsClient.connect(connectionParameters.wsServerUrl, connectionParameters.subProtocols);
     }
 

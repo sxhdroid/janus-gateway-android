@@ -134,9 +134,9 @@ public class PeerConnectionClient2 {
   //private final SDPObserver sdpObserver = new SDPObserver();
   private final Timer statsTimer = new Timer();
   private final EglBase rootEglBase;
-  private final Context appContext;
   private final PeerConnectionParameters peerConnectionParameters;
   private final PeerConnectionEvents events;
+  private Context appContext;
 
   @Nullable
   private PeerConnectionFactory factory;
@@ -432,6 +432,15 @@ public class PeerConnectionClient2 {
       factory.dispose();
       factory = null;
     }
+    executor.shutdown();
+    localVideoTrack = null;
+    localAudioTrack = null;
+    localHandleId = null;
+    localVideoSender = null;
+    appContext = null;
+    audioConstraints = null;
+    sdpMediaConstraints = null;
+
   }
 
   private boolean isVideoCallEnabled() {
@@ -674,7 +683,7 @@ public class PeerConnectionClient2 {
 
     Log.d(TAG, "createPeerConnectioning...");
 
-    PeerConnection peerConnection=createPeerConnection(handleId,true);
+    PeerConnection peerConnection = createPeerConnection(handleId,true);
 
     // Set INFO libjingle logging.
     // NOTE: this _must_ happen while |factory| is alive!
@@ -763,7 +772,6 @@ public class PeerConnectionClient2 {
     return new File(
         appContext.getDir(RTCEVENTLOG_OUTPUT_DIR_NAME, Context.MODE_PRIVATE), outputFileName);
   }
-
 
   private void closeInternal(boolean stopCapture) {
     if (factory != null && peerConnectionParameters.aecDump) {
@@ -884,7 +892,8 @@ public class PeerConnectionClient2 {
     executor.execute(() -> {
       Log.d(TAG,"peerConnectionMap get handleId="+handleId);
       JanusConnection2 connection = peerConnectionMap.get(handleId);
-      PeerConnection peerConnection=connection.peerConnection;
+      if (connection == null) return;
+      PeerConnection peerConnection = connection.peerConnection;
       if (peerConnection != null && !isError) {
         Log.d(TAG, "PC Create OFFER");
         peerConnection.createOffer(connection.sdpObserver, sdpMediaConstraints);
