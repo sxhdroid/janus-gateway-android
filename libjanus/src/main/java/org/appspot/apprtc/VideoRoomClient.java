@@ -29,7 +29,7 @@ class VideoRoomClient implements WebSocketChannelEvents {
 
     private static final String TAG = "VideoRoomClient";
 
-    private final Handler handler;
+    private Handler handler;
     private WebSocketChannelClient wsClient;
     private JanusRTCEvents2 events;
     private JanusServerState state;
@@ -56,58 +56,46 @@ class VideoRoomClient implements WebSocketChannelEvents {
     // ----------------------------------------------------------------------------
     public void connectToServer(JanusConnectionParameters connectionParameters) {
         this.connectionParameters = connectionParameters;
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                init();
-            }
-        });
+        handler.post(this::init);
     }
 
     public void disconnectFromServer() {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                disconnect();
-                handler.getLooper().quit();
-            }
-        });
+        if (state != JanusServerState.CONNECTED) return;
+        handler.post(this::disconnect);
+    }
+
+    public void release() {
+        if (state == JanusServerState.CONNECTED) {
+            handler.post(this::disconnect);
+        }
+        handler.removeCallbacksAndMessages(null);
+        handler.getLooper().quit();
+        handler = null;
+        wsClient = null;
+        events = null;
+        connectionParameters = null;
+        state = null;
+        transactionMap = null;
+        handleMap = null;
+        feedMap = null;
+        sessionId = null;
+        privateId = null;
     }
 
     public void publisherCreateOffer(final BigInteger handleId, final SessionDescription sdp) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                createOffer(handleId, sdp);
-            }
-        });
+        handler.post(() -> createOffer(handleId, sdp));
     }
 
     public void subscriberCreateAnswer(final BigInteger handleId, final SessionDescription sdp){
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                createAnswer(handleId, sdp);
-            }
-        });
+        handler.post(() -> createAnswer(handleId, sdp));
     }
 
     public void trickleCandidate(final BigInteger handleId, final IceCandidate iceCandidate) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                trickle(handleId, iceCandidate);
-            }
-        });
+        handler.post(() -> trickle(handleId, iceCandidate));
     }
 
     public void trickleCandidateComplete(final BigInteger handleId) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                trickleComplete(handleId);
-            }
-        });
+        handler.post(() -> trickleComplete(handleId));
     }
 
     // ----------------------------------------------------------------------------
@@ -170,7 +158,7 @@ class VideoRoomClient implements WebSocketChannelEvents {
         wsClient.send(json.toString());
     }
 
-    private Runnable fireKeepAlive = new Runnable() {
+    private final Runnable fireKeepAlive = new Runnable() {
         @Override
         public void run() {
             keepAlive();
@@ -465,7 +453,7 @@ class VideoRoomClient implements WebSocketChannelEvents {
     private void destroy() {
         checkIfCalledOnValidThread();
 
-        if(sessionId == BigInteger.ZERO) {
+        if(sessionId.equals(BigInteger.ZERO)) {
             Log.w(TAG, "destroy() for sessionid 0");
             return;
         }
@@ -663,6 +651,7 @@ class VideoRoomClient implements WebSocketChannelEvents {
 
     @Override
     public void onWebSocketClose() {
+        handler.removeCallbacksAndMessages(null);
         events.onChannelClose();
     }
 
@@ -695,14 +684,11 @@ class VideoRoomClient implements WebSocketChannelEvents {
     
     private void reportError(final String errorMessage) {
         Log.e(TAG, errorMessage);
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (state != JanusServerState.ERROR) {
-                    destroy();
-                    setState(JanusServerState.ERROR);
-                    events.onChannelError(errorMessage);
-                }
+        handler.post(() -> {
+            if (state != JanusServerState.ERROR) {
+                destroy();
+                setState(JanusServerState.ERROR);
+                events.onChannelError(errorMessage);
             }
         });
     }

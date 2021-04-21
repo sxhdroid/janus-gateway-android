@@ -154,9 +154,9 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
         // Set window styles for fullscreen-window size. Needs to be done before
         // adding content.
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(LayoutParams.FLAG_FULLSCREEN | LayoutParams.FLAG_KEEP_SCREEN_ON
+        getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON
                 | LayoutParams.FLAG_SHOW_WHEN_LOCKED | LayoutParams.FLAG_TURN_SCREEN_ON);
-        getWindow().getDecorView().setSystemUiVisibility(getSystemUiVisibility());
+//        getWindow().getDecorView().setSystemUiVisibility(getSystemUiVisibility());
         setContentView(R.layout.activity_call_video);
 
         iceConnected = false;
@@ -350,6 +350,8 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     protected void onDestroy() {
         Thread.setDefaultUncaughtExceptionHandler(null);
         disconnect(true);
+        janusClient.release();
+        janusClient = null;
         if (logToast != null) {
             logToast.cancel();
         }
@@ -440,7 +442,6 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     private void disconnect(Boolean stopCapture) {
         if (janusClient != null) {
             janusClient.disconnect(stopCapture);
-            janusClient.release();
         }
         if (iceConnected) {
             setResult(RESULT_OK);
@@ -448,15 +449,15 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
             setResult(RESULT_CANCELED);
         }
 
-        for(SurfaceViewRenderer renderer : surfaceViewRenderers) {
-            if (renderer == null)  continue;
-            renderer.clearImage();
-            renderer.setMirror(false);
-            renderer.setVisibility(View.INVISIBLE);
-        }
-        surfaceViewRenderers.clear();
+//        for(SurfaceViewRenderer renderer : surfaceViewRenderers) {
+//            if (renderer == null)  continue;
+//            renderer.clearImage();
+//            renderer.setMirror(false);
+//            renderer.setVisibility(View.INVISIBLE);
+//        }
+//        surfaceViewRenderers.clear();
 
-        finish();
+//        finish();
     }
 
     // Log |msg| and Toast about it.

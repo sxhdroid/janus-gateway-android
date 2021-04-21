@@ -405,7 +405,33 @@ public class PeerConnectionClient2 {
   }
 
   public void close() {
-    executor.execute(this ::closeInternal);
+    close(true);
+  }
+
+  /**
+   * 是否停止视频捕获
+   *
+   * @param stopCapture true： 停止， false：不停止
+   */
+  public void close(boolean stopCapture) {
+    executor.execute(() -> closeInternal(stopCapture));
+  }
+
+  public void release() {
+    if (videoCapturer != null) {
+      videoCapturer.dispose();
+    }
+    videoCapturer = null;
+    if (surfaceTextureHelper != null) {
+      surfaceTextureHelper.dispose();
+      surfaceTextureHelper = null;
+    }
+    rootEglBase.release();
+    Log.d(TAG, "Closing peer connection factory.");
+    if (factory != null) {
+      factory.dispose();
+      factory = null;
+    }
   }
 
   private boolean isVideoCallEnabled() {
@@ -739,7 +765,7 @@ public class PeerConnectionClient2 {
   }
 
 
-  private void closeInternal() {
+  private void closeInternal(boolean stopCapture) {
     if (factory != null && peerConnectionParameters.aecDump) {
       factory.stopAecDump();
     }
@@ -750,6 +776,7 @@ public class PeerConnectionClient2 {
       for(JanusConnection2 conn : peerConnectionMap.values()) {
         if (conn.peerConnection != null) {
           conn.peerConnection.dispose();
+          events.onPeerConnectionClosed(conn.handleId);
           conn.peerConnection = null;
         }
       }
@@ -757,14 +784,15 @@ public class PeerConnectionClient2 {
     peerConnectionMap.clear();
 
     if(videoSinkMap != null) {
-      for(ProxyVideoSinks sink : videoSinkMap.values()) {
+      for (BigInteger handleId: videoSinkMap.keySet()) {
+        if (handleId.equals(localHandleId)) continue;
+        videoSinkMap.remove(handleId);
+        ProxyVideoSinks sink = videoSinkMap.get(handleId);
         if (sink != null) {
           sink.reset();
         }
       }
     }
-    videoSinkMap.clear();
-
 
     Log.d(TAG, "Closing audio source.");
     if (audioSource != null) {
@@ -772,34 +800,23 @@ public class PeerConnectionClient2 {
       audioSource = null;
     }
     Log.d(TAG, "Stopping capture.");
-    if (videoCapturer != null) {
+    if (videoCapturer != null && stopCapture) {
       try {
         videoCapturer.stopCapture();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
       videoCapturerStopped = true;
-      videoCapturer.dispose();
-      videoCapturer = null;
     }
     Log.d(TAG, "Closing video source.");
     if (videoSource != null) {
       videoSource.dispose();
       videoSource = null;
     }
-    if (surfaceTextureHelper != null) {
-      surfaceTextureHelper.dispose();
-      surfaceTextureHelper = null;
+    if (stopCapture) {
+      release();
     }
-
-    Log.d(TAG, "Closing peer connection factory.");
-    if (factory != null) {
-      factory.dispose();
-      factory = null;
-    }
-    rootEglBase.release();
     Log.d(TAG, "Closing peer connection done.");
-    events.onPeerConnectionClosed(null);
     PeerConnectionFactory.stopInternalTracingCapture();
     PeerConnectionFactory.shutdownInternalTracer();
   }

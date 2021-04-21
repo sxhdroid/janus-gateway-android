@@ -291,7 +291,7 @@ class JanusClient private constructor(private val context: Activity, private val
     @JvmOverloads
     fun disconnect(stopCapture: Boolean = true) {
         videoRoomClient?.disconnectFromServer()
-        peerConnectionClient?.close()
+        peerConnectionClient?.close(stopCapture)
         audioManager?.stop()
     }
 
@@ -328,7 +328,9 @@ class JanusClient private constructor(private val context: Activity, private val
     }
 
     fun release() {
+        videoRoomClient?.release()
         videoRoomClient = null
+        peerConnectionClient?.release()
         peerConnectionClient = null
         audioManager = null
         onLiveCallback = null
