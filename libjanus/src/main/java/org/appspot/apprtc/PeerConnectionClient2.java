@@ -121,7 +121,7 @@ public class PeerConnectionClient2 {
   // Executor thread is started once in private ctor and is used for all
   // peer connection API calls to ensure new peer connection factory is
   // created on the same thread as previously destroyed factory.
-  private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+  private ExecutorService executor = Executors.newSingleThreadExecutor();
 
   //private final PCObserver pcObserver = new PCObserver();
   //private final SDPObserver sdpObserver = new SDPObserver();
@@ -431,7 +431,8 @@ public class PeerConnectionClient2 {
       factory.dispose();
       factory = null;
     }
-    executor.shutdown();
+    executor.shutdownNow();
+    executor = null;
     localVideoTrack = null;
     localAudioTrack = null;
     localHandleId = null;
@@ -439,6 +440,9 @@ public class PeerConnectionClient2 {
     appContext = null;
     audioConstraints = null;
     sdpMediaConstraints = null;
+    peerConnectionMap = null;
+    videoSinkMap = null;
+    videoSource = null;
 
   }
 

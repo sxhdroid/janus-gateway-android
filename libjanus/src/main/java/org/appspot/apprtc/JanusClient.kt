@@ -24,7 +24,7 @@ import java.math.BigInteger
  */
 class JanusClient private constructor(private val context: Activity, private val builder: Builder) {
 
-    private val tag = "LiveHelper"
+    private val tag = "JanusClient"
 
     private var peerConnectionClient: PeerConnectionClient2? = null
     private var videoRoomClient: VideoRoomClient? = null
@@ -38,8 +38,6 @@ class JanusClient private constructor(private val context: Activity, private val
     var onLiveCallback: OnLiveCallback? = null
 
     init {
-        initVideoRoom()
-        initAudioManager()
         initLive(builder.eglBase!!, builder.peerConnectionParameters, builder.options)
     }
 
@@ -136,20 +134,6 @@ class JanusClient private constructor(private val context: Activity, private val
         peerConnectionClient!!.createPeerConnectionFactory(options
                 ?: PeerConnectionFactory.Options())
         peerConnectionClient!!.setVideoCapturer(createVideoCapturer())
-    }
-
-    private fun initAudioManager() {
-        // Create and audio manager that will take care of audio routing,
-        // audio modes, audio device enumeration etc.
-        audioManager = AppRTCAudioManager.create(context.applicationContext)
-        // Store existing audio settings and change audio mode to
-        // MODE_IN_COMMUNICATION for best possible VoIP performance.
-        Log.d(tag, "Starting the audio manager...")
-        audioManager!!.start { audioDevice, availableAudioDevices ->
-            // This method will be called each time the number of available audio
-            // devices has changed.
-            onAudioManagerDevicesChanged(audioDevice, availableAudioDevices)
-        }
     }
 
     // This method is called when the audio manager reports audio device change,
@@ -261,7 +245,6 @@ class JanusClient private constructor(private val context: Activity, private val
     private fun initLive(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
                  options: PeerConnectionFactory.Options?) {
         initVideoRoom()
-        initAudioManager()
         initPeerConnection(eglBase, peerConnectionParameters, options)
     }
 
@@ -286,6 +269,18 @@ class JanusClient private constructor(private val context: Activity, private val
 
         // Start room connection.
         videoRoomClient?.connectToServer(connectionParameters)
+
+        // Create and audio manager that will take care of audio routing,
+        // audio modes, audio device enumeration etc.
+        audioManager = AppRTCAudioManager.create(context.applicationContext)
+        // Store existing audio settings and change audio mode to
+        // MODE_IN_COMMUNICATION for best possible VoIP performance.
+        Log.d(tag, "Starting the audio manager...")
+        audioManager!!.start { audioDevice, availableAudioDevices ->
+            // This method will be called each time the number of available audio
+            // devices has changed.
+            onAudioManagerDevicesChanged(audioDevice, availableAudioDevices)
+        }
     }
 
     // Disconnect from remote resources, dispose of local resources, and exit.
@@ -294,6 +289,7 @@ class JanusClient private constructor(private val context: Activity, private val
         videoRoomClient?.disconnectFromServer()
         peerConnectionClient?.close(stopCapture)
         audioManager?.stop()
+        audioManager = null
     }
 
     fun stopVideoSource() {
@@ -333,7 +329,6 @@ class JanusClient private constructor(private val context: Activity, private val
         videoRoomClient = null
         peerConnectionClient?.release()
         peerConnectionClient = null
-        audioManager = null
         onLiveCallback = null
         mediaProjectionPermissionResultData = null
     }
