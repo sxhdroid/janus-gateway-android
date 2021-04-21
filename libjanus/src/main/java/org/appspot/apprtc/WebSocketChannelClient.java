@@ -177,14 +177,9 @@ class WebSocketChannelClient {
                 closeEvent = true;
                 closeEventLock.notify();
             }
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (state != WebSocketConnectionState.CLOSED) {
-                        state = WebSocketConnectionState.CLOSED;
-                        events.onWebSocketClose();
-                    }
-                }
+            handler.post(() -> {
+                state = WebSocketConnectionState.CLOSED;
+                events.onWebSocketClose();
             });
         }
 
