@@ -750,16 +750,16 @@ public class PeerConnectionClient2 {
     SDPObserver sdpObserver = new SDPObserver();
     PeerConnection peerConnection = factory.createPeerConnection(rtcConfig, pcObserver);
 
-    JanusConnection2 JanusConnection2 = new JanusConnection2();
-    JanusConnection2.handleId = handleId;
-    JanusConnection2.sdpObserver = sdpObserver;
-    JanusConnection2.peerConnection = peerConnection;
-    JanusConnection2.type = type;
+    JanusConnection2 janusConnection2 = new JanusConnection2();
+    janusConnection2.handleId = handleId;
+    janusConnection2.sdpObserver = sdpObserver;
+    janusConnection2.peerConnection = peerConnection;
+    janusConnection2.type = type;
     Log.d(TAG,"We are putting handleId="+handleId);
-    peerConnectionMap.put(handleId, JanusConnection2);
+    peerConnectionMap.put(handleId, janusConnection2);
     videoSinkMap.put(handleId, new ProxyVideoSinks());
-    pcObserver.setConnection(JanusConnection2);
-    sdpObserver.setConnection(JanusConnection2);
+    pcObserver.setConnection(janusConnection2);
+    sdpObserver.setConnection(janusConnection2);
     Log.d(TAG, "Peer connection created.");
     return peerConnection;
   }
@@ -903,10 +903,11 @@ public class PeerConnectionClient2 {
   public void subscriberHandleRemoteJsep(final BigInteger handleId,final SessionDescription sdp) {
     executor.execute(() -> {
       PeerConnection peerConnection = createPeerConnection(handleId, false);
-      SDPObserver sdpObserver = peerConnectionMap.get(handleId).sdpObserver;
       if (peerConnection != null && !isError) {
         Log.d(TAG, "PC create ANSWER");
         JanusConnection2 connection = peerConnectionMap.get(handleId);
+        if (connection == null) return;
+        SDPObserver sdpObserver = connection.sdpObserver;
         peerConnection.setRemoteDescription(sdpObserver, sdp);
         peerConnection.createAnswer(connection.sdpObserver, sdpMediaConstraints);
       }
@@ -916,7 +917,6 @@ public class PeerConnectionClient2 {
   public void addRemoteIceCandidate(final IceCandidate candidate,final BigInteger handleId) {
     executor.execute(() -> {
       PeerConnection peerConnection = createPeerConnection(handleId, false);
-      SDPObserver sdpObserver = peerConnectionMap.get(handleId).sdpObserver;
       if (peerConnection != null && !isError) {
         if (queuedRemoteCandidates != null) {
           queuedRemoteCandidates.add(candidate);
@@ -930,7 +930,6 @@ public class PeerConnectionClient2 {
   public void removeRemoteIceCandidates(final IceCandidate[] candidates,final BigInteger handleId) {
     executor.execute(() -> {
       PeerConnection peerConnection = peerConnectionMap.get(handleId).peerConnection;
-      SDPObserver sdpObserver = peerConnectionMap.get(handleId).sdpObserver;
       if (peerConnection == null || isError) {
         return;
       }
@@ -1019,9 +1018,8 @@ public class PeerConnectionClient2 {
     });
   }
 
-  public void setVideoMaxBitrate(@Nullable final Integer maxBitrateKbps,final BigInteger handleId) {
+  private void setVideoMaxBitrate(@Nullable final Integer maxBitrateKbps,final BigInteger handleId) {
     PeerConnection peerConnection = peerConnectionMap.get(handleId).peerConnection;
-    SDPObserver sdpObserver = peerConnectionMap.get(handleId).sdpObserver;
     executor.execute(() -> {
       if (peerConnection == null || localVideoSender == null || isError) {
         return;
@@ -1468,6 +1466,7 @@ public class PeerConnectionClient2 {
       localSdp = sdp;
       executor.execute(() -> {
         if (peerConnection != null && !isError) {
+          setVideoMaxBitrate(peerConnectionParameters.videoMaxBitrate, handleId);
           Log.d(TAG, "Set local SDP from " + sdp.type);
           peerConnection.setLocalDescription(sdpObserver, sdp);
         }
