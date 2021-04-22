@@ -676,7 +676,7 @@ public class PeerConnectionClient2 {
   }
 
   private void createPeerConnectionInternal(final BigInteger handleId) {
-    if (factory == null || isError) {
+    if (factory == null) {
       Log.e(TAG, "Peerconnection factory is not created");
       return;
     }
