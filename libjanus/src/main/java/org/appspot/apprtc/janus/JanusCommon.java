@@ -17,17 +17,23 @@ public class JanusCommon {
         public final long roomId;
         public final String userDisplay;
         public final int maxUserForRoom;     // videoroom plugin?   // fixme: 0: no limit
+        public final int bitrate;// 比特率上限
 
-        public JanusConnectionParameters(String wsServerUrl, long roomId, String userDisplay, int maxUserForRoom) {
+        public JanusConnectionParameters(String wsServerUrl, long roomId, String userDisplay, int bitrate, int maxUserForRoom) {
             this.wsServerUrl = wsServerUrl;
             this.subProtocols = JanusCommon.subProtocols;
             this.roomId = roomId;
             this.userDisplay = userDisplay;
+            this.bitrate = bitrate;
             this.maxUserForRoom = maxUserForRoom;
         }
 
+        public JanusConnectionParameters(String wsServerUrl, long roomId, String userDisplay, int maxUserForRoom) {
+            this(wsServerUrl, roomId, userDisplay, 0, maxUserForRoom);
+        }
+
         public JanusConnectionParameters(String wsServerUrl, long roomId, String userDisplay) {
-            this(wsServerUrl, roomId, userDisplay,  0 /* maxUserForRoom */);
+            this(wsServerUrl, roomId, userDisplay, 0 /* maxUserForRoom */);
         }
     }
 }

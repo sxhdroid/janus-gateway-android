@@ -314,6 +314,7 @@ class VideoRoomClient implements WebSocketChannelEvents {
         jsonPut(jsonBody, "request", "configure");
         jsonPut(jsonBody, "audio", true);
         jsonPut(jsonBody, "video", true);
+        jsonPut(jsonBody, "bitrate", connectionParameters.bitrate * 1000);
 
         jsonPut(json, "janus", "message");
         jsonPut(json, "body", jsonBody);

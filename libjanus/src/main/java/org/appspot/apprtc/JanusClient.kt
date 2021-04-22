@@ -265,7 +265,8 @@ class JanusClient private constructor(private val context: Activity, private val
     @JvmOverloads
     fun startCall(roomUrl: String, roomId: Long, userId: String?, maxVideoRoomUsers: Int = 0) {
         callStartedTimeMs = System.currentTimeMillis()
-        val connectionParameters = JanusConnectionParameters(roomUrl, roomId, userId, maxVideoRoomUsers)
+        val connectionParameters = JanusConnectionParameters(roomUrl, roomId, userId,
+                builder.peerConnectionParameters.videoMaxBitrate, maxVideoRoomUsers)
 
         // Start room connection.
         videoRoomClient?.connectToServer(connectionParameters)
