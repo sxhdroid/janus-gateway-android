@@ -391,6 +391,7 @@ public class PeerConnectionClient2 {
     if (peerConnectionParameters.videoCallEnabled && videoCapturer == null) {
       Log.w(TAG, "Video call enabled but no video capturer provided.");
     }
+    isError = false;
     executor.execute(() -> {
       try {
         createMediaConstraintsInternal();
