@@ -56,14 +56,6 @@ import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule.AudioRecordErrorCallback;
 import org.webrtc.audio.JavaAudioDeviceModule.AudioTrackErrorCallback;
-import org.webrtc.audio.LegacyAudioDeviceModule;
-import org.webrtc.voiceengine.WebRtcAudioManager;
-import org.webrtc.voiceengine.WebRtcAudioRecord;
-import org.webrtc.voiceengine.WebRtcAudioRecord.AudioRecordStartErrorCode;
-import org.webrtc.voiceengine.WebRtcAudioRecord.WebRtcAudioRecordErrorCallback;
-import org.webrtc.voiceengine.WebRtcAudioTrack;
-import org.webrtc.voiceengine.WebRtcAudioTrack.AudioTrackStartErrorCode;
-import org.webrtc.voiceengine.WebRtcAudioUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -126,9 +118,9 @@ public class PeerConnectionClient2 {
   //private final PCObserver pcObserver = new PCObserver();
   //private final SDPObserver sdpObserver = new SDPObserver();
   private final Timer statsTimer = new Timer();
-  private final EglBase rootEglBase;
   private final PeerConnectionParameters peerConnectionParameters;
   private final PeerConnectionEvents events;
+  private EglBase rootEglBase;
   private Context appContext;
 
   @Nullable
@@ -418,33 +410,7 @@ public class PeerConnectionClient2 {
   }
 
   public void release() {
-    if (videoCapturer != null) {
-      videoCapturer.dispose();
-    }
-    videoCapturer = null;
-    if (surfaceTextureHelper != null) {
-      surfaceTextureHelper.dispose();
-      surfaceTextureHelper = null;
-    }
-    rootEglBase.release();
-    Log.d(TAG, "Closing peer connection factory.");
-    if (factory != null) {
-      factory.dispose();
-      factory = null;
-    }
-    executor.shutdownNow();
-    executor = null;
-    localVideoTrack = null;
-    localAudioTrack = null;
-    localHandleId = null;
-    localVideoSender = null;
-    appContext = null;
-    audioConstraints = null;
-    sdpMediaConstraints = null;
-    peerConnectionMap = null;
-    videoSinkMap = null;
-    videoSource = null;
-
+    executor.execute(this::releaseInternal);
   }
 
   private boolean isVideoCallEnabled() {
@@ -464,9 +430,7 @@ public class PeerConnectionClient2 {
     preferIsac = peerConnectionParameters.audioCodec != null
         && peerConnectionParameters.audioCodec.equals(CodecType.Audio.AUDIO_CODEC_ISAC);
 
-    final AudioDeviceModule adm = peerConnectionParameters.useLegacyAudioDevice
-        ? createLegacyAudioDevice()
-        : createJavaAudioDevice();
+    final AudioDeviceModule adm = createJavaAudioDevice();
 
     // Create peer connection factory.
     if (options != null) {
@@ -494,80 +458,6 @@ public class PeerConnectionClient2 {
                   .createPeerConnectionFactory();
     Log.d(TAG, "Peer connection factory created.");
     adm.release();
-  }
-
-  AudioDeviceModule createLegacyAudioDevice() {
-    // Enable/disable OpenSL ES playback.
-    if (!peerConnectionParameters.useOpenSLES) {
-      Log.d(TAG, "Disable OpenSL ES audio even if device supports it");
-      WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(true /* enable */);
-    } else {
-      Log.d(TAG, "Allow OpenSL ES audio if device supports it");
-      WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(false);
-    }
-
-    if (peerConnectionParameters.disableBuiltInAEC) {
-      Log.d(TAG, "Disable built-in AEC even if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedAcousticEchoCanceler(true);
-    } else {
-      Log.d(TAG, "Enable built-in AEC if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedAcousticEchoCanceler(false);
-    }
-
-    if (peerConnectionParameters.disableBuiltInNS) {
-      Log.d(TAG, "Disable built-in NS even if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedNoiseSuppressor(true);
-    } else {
-      Log.d(TAG, "Enable built-in NS if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedNoiseSuppressor(false);
-    }
-
-    WebRtcAudioRecord.setOnAudioSamplesReady(saveRecordedAudioToFile);
-
-    // Set audio record error callbacks.
-    WebRtcAudioRecord.setErrorCallback(new WebRtcAudioRecordErrorCallback() {
-      @Override
-      public void onWebRtcAudioRecordInitError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioRecordInitError: " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioRecordStartError(
-          AudioRecordStartErrorCode errorCode, String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioRecordStartError: " + errorCode + ". " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioRecordError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioRecordError: " + errorMessage);
-        reportError(errorMessage);
-      }
-    });
-
-    WebRtcAudioTrack.setErrorCallback(new WebRtcAudioTrack.ErrorCallback() {
-      @Override
-      public void onWebRtcAudioTrackInitError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioTrackInitError: " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioTrackStartError(
-          AudioTrackStartErrorCode errorCode, String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioTrackStartError: " + errorCode + ". " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioTrackError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioTrackError: " + errorMessage);
-        reportError(errorMessage);
-      }
-    });
-
-    return new LegacyAudioDeviceModule();
   }
 
   AudioDeviceModule createJavaAudioDevice() {
@@ -825,12 +715,43 @@ public class PeerConnectionClient2 {
       videoSource.dispose();
       videoSource = null;
     }
-    if (stopCapture) {
-      release();
-    }
     Log.d(TAG, "Closing peer connection done.");
     PeerConnectionFactory.stopInternalTracingCapture();
     PeerConnectionFactory.shutdownInternalTracer();
+  }
+
+  private void releaseInternal() {
+    if (videoCapturer != null) {
+      videoCapturer.dispose();
+    }
+    videoCapturer = null;
+    if (surfaceTextureHelper != null) {
+      surfaceTextureHelper.dispose();
+      surfaceTextureHelper = null;
+    }
+    if (rootEglBase != null) {
+      rootEglBase.release();
+    }
+    rootEglBase = null;
+    Log.d(TAG, "Closing peer connection factory.");
+    if (factory != null) {
+      factory.dispose();
+      factory = null;
+    }
+    if (executor != null) {
+      executor.shutdownNow();
+    }
+    executor = null;
+    localVideoTrack = null;
+    localAudioTrack = null;
+    localHandleId = null;
+    localVideoSender = null;
+    appContext = null;
+    audioConstraints = null;
+    sdpMediaConstraints = null;
+    peerConnectionMap = null;
+    videoSinkMap = null;
+    videoSource = null;
   }
 
   public boolean isHDVideo() {

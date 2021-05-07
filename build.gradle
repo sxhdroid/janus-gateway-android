@@ -19,7 +19,7 @@ buildscript {
 allprojects {
     repositories {
         flatDir {
-            dirs "$rootProject.projectDir/app/libs"
+            dirs "$rootProject.projectDir/app/libs","$rootProject.projectDir/libjanus/libs"
         }
         jcenter()
         google()

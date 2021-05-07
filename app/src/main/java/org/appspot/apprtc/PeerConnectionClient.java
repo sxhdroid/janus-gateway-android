@@ -54,14 +54,6 @@ import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule.AudioRecordErrorCallback;
 import org.webrtc.audio.JavaAudioDeviceModule.AudioTrackErrorCallback;
-import org.webrtc.audio.LegacyAudioDeviceModule;
-import org.webrtc.voiceengine.WebRtcAudioManager;
-import org.webrtc.voiceengine.WebRtcAudioRecord;
-import org.webrtc.voiceengine.WebRtcAudioRecord.AudioRecordStartErrorCode;
-import org.webrtc.voiceengine.WebRtcAudioRecord.WebRtcAudioRecordErrorCallback;
-import org.webrtc.voiceengine.WebRtcAudioTrack;
-import org.webrtc.voiceengine.WebRtcAudioTrack.AudioTrackStartErrorCode;
-import org.webrtc.voiceengine.WebRtcAudioUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -409,9 +401,7 @@ public class PeerConnectionClient {
     preferIsac = peerConnectionParameters.audioCodec != null
         && peerConnectionParameters.audioCodec.equals(AUDIO_CODEC_ISAC);
 
-    final AudioDeviceModule adm = peerConnectionParameters.useLegacyAudioDevice
-        ? createLegacyAudioDevice()
-        : createJavaAudioDevice();
+    final AudioDeviceModule adm = createJavaAudioDevice();
 
     // Create peer connection factory.
     if (options != null) {
@@ -439,80 +429,6 @@ public class PeerConnectionClient {
                   .createPeerConnectionFactory();
     Log.d(TAG, "Peer connection factory created.");
     adm.release();
-  }
-
-  AudioDeviceModule createLegacyAudioDevice() {
-    // Enable/disable OpenSL ES playback.
-    if (!peerConnectionParameters.useOpenSLES) {
-      Log.d(TAG, "Disable OpenSL ES audio even if device supports it");
-      WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(true /* enable */);
-    } else {
-      Log.d(TAG, "Allow OpenSL ES audio if device supports it");
-      WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(false);
-    }
-
-    if (peerConnectionParameters.disableBuiltInAEC) {
-      Log.d(TAG, "Disable built-in AEC even if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedAcousticEchoCanceler(true);
-    } else {
-      Log.d(TAG, "Enable built-in AEC if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedAcousticEchoCanceler(false);
-    }
-
-    if (peerConnectionParameters.disableBuiltInNS) {
-      Log.d(TAG, "Disable built-in NS even if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedNoiseSuppressor(true);
-    } else {
-      Log.d(TAG, "Enable built-in NS if device supports it");
-      WebRtcAudioUtils.setWebRtcBasedNoiseSuppressor(false);
-    }
-
-    WebRtcAudioRecord.setOnAudioSamplesReady(saveRecordedAudioToFile);
-
-    // Set audio record error callbacks.
-    WebRtcAudioRecord.setErrorCallback(new WebRtcAudioRecordErrorCallback() {
-      @Override
-      public void onWebRtcAudioRecordInitError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioRecordInitError: " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioRecordStartError(
-          AudioRecordStartErrorCode errorCode, String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioRecordStartError: " + errorCode + ". " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioRecordError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioRecordError: " + errorMessage);
-        reportError(errorMessage);
-      }
-    });
-
-    WebRtcAudioTrack.setErrorCallback(new WebRtcAudioTrack.ErrorCallback() {
-      @Override
-      public void onWebRtcAudioTrackInitError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioTrackInitError: " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioTrackStartError(
-          AudioTrackStartErrorCode errorCode, String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioTrackStartError: " + errorCode + ". " + errorMessage);
-        reportError(errorMessage);
-      }
-
-      @Override
-      public void onWebRtcAudioTrackError(String errorMessage) {
-        Log.e(TAG, "onWebRtcAudioTrackError: " + errorMessage);
-        reportError(errorMessage);
-      }
-    });
-
-    return new LegacyAudioDeviceModule();
   }
 
   AudioDeviceModule createJavaAudioDevice() {
