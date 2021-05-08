@@ -688,11 +688,11 @@ public class PeerConnectionClient2 {
     if(videoSinkMap != null) {
       for (BigInteger handleId: videoSinkMap.keySet()) {
         if (handleId.equals(localHandleId)) continue;
-        videoSinkMap.remove(handleId);
         ProxyVideoSinks sink = videoSinkMap.get(handleId);
         if (sink != null) {
           sink.reset();
         }
+        videoSinkMap.remove(handleId);
       }
     }
 
@@ -722,6 +722,11 @@ public class PeerConnectionClient2 {
 
   private void releaseInternal() {
     if (videoCapturer != null) {
+      try {
+        videoCapturer.stopCapture();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       videoCapturer.dispose();
     }
     videoCapturer = null;
@@ -899,9 +904,8 @@ public class PeerConnectionClient2 {
 
   public void dispose(BigInteger handleId) {
     executor.execute(() -> {
-      videoSinkMap.remove(handleId);
       JanusConnection2 conn = peerConnectionMap.get(handleId);
-      if (conn.peerConnection != null) {
+      if (conn != null && conn.peerConnection != null) {
         conn.peerConnection.dispose();
         conn.peerConnection = null;
       }
