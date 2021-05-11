@@ -359,6 +359,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
         if (logToast != null) {
             logToast.cancel();
         }
+        release();
         super.onDestroy();
     }
 
@@ -591,6 +592,13 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
             }
             positionVector.set(index, BigInteger.ZERO);
             break;
+        }
+    }
+
+    private void release() {
+        for (SurfaceViewRenderer renderer: surfaceViewRenderers) {
+            renderer.clearImage();
+            renderer.release();
         }
     }
 }
