@@ -162,7 +162,7 @@ class JanusClient private constructor(private val context: Activity, private val
             createCameraCapturer(Camera2Enumerator(context))
         } else {
             Logging.d(tag, "Creating capturer using camera1 API.")
-            createCameraCapturer(Camera1Enumerator(builder.captureToTexture))
+            createCameraCapturer(RkCamera1Enumerator(builder.captureToTexture))
         }
         if (videoCapturer == null) {
             reportError("Failed to open camera")

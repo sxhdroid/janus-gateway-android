@@ -34,7 +34,7 @@ dependencies {
     implementation files('libs/autobanh.jar')
 //    api project(path: ':libjingle_peerconnection')
     api(name: 'google-webrtc-1.0.33829', ext: 'aar') // webrtc 连接库
-    embed(name: 'google-webrtc-1.0.33829', ext: 'aar') // webrtc 连接库
+//    embed(name: 'google-webrtc-1.0.33829', ext: 'aar') // webrtc 连接库,打包aar开启
     implementation 'androidx.appcompat:appcompat:1.2.0'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
