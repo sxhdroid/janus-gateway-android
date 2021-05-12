@@ -23,7 +23,6 @@ import org.webrtc.AudioTrack;
 import org.webrtc.CameraVideoCapturer;
 import org.webrtc.DataChannel;
 import org.webrtc.DefaultVideoDecoderFactory;
-import org.webrtc.DefaultVideoEncoderFactory;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
@@ -33,6 +32,7 @@ import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnection.IceConnectionState;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.RkHardwareVideoEncoderFactory;
 import org.webrtc.RtpParameters;
 import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
@@ -442,7 +442,7 @@ public class PeerConnectionClient2 {
     final VideoDecoderFactory decoderFactory;
 
     if (peerConnectionParameters.videoCodecHwAcceleration) {
-      encoderFactory = new DefaultVideoEncoderFactory(
+      encoderFactory = new RkHardwareVideoEncoderFactory(
           rootEglBase.getEglBaseContext(), true /* enableIntelVp8Encoder */, enableH264HighProfile);
       decoderFactory = new DefaultVideoDecoderFactory(rootEglBase.getEglBaseContext());
     } else {
