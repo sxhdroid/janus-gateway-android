@@ -21,6 +21,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            android.libraryVariants.all { variant ->
+                variant.outputs.all {
+                    outputFileName = "libjanus-google-webrtc-1.0.33829.aar"
+                }
+            }
         }
     }
     compileOptions {
