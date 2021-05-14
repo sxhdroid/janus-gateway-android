@@ -109,8 +109,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void create() {
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.NEW && state != JanusServerState.CLOSED) {
             Log.w(TAG, "create() in a error state -- " + state);
             return;
@@ -145,8 +143,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void keepAlive() {
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "keepalive() in a error state -- " + state);
             return;
@@ -169,8 +165,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     };
 
     private void attach(final BigInteger feedId, final String display){
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "attach() in a error state -- " + state);
             return;
@@ -214,7 +208,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void join(BigInteger handleId, BigInteger feedId) {
-        checkIfCalledOnValidThread();
 
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "join() in a error state -- " + state);
@@ -279,8 +272,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void createOffer(BigInteger handleId, SessionDescription sdp) {
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "join() in a error state -- " + state);
             return;
@@ -327,8 +318,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void createAnswer(BigInteger handleId, SessionDescription sdp) {
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "join() in a error state -- " + state);
             return;
@@ -369,8 +358,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void trickle(BigInteger handleId, IceCandidate iceCandidate) {
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "keepalive() in a error state -- " + state);
             return;
@@ -388,8 +375,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void trickleComplete(BigInteger handleId) {
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "keepalive() in a error state -- " + state);
             return;
@@ -410,8 +395,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void detach(final BigInteger handleId) {
-        checkIfCalledOnValidThread();
-
         if(state != JanusServerState.CONNECTED) {
             Log.w(TAG, "detach() in a error state -- " + state);
             return;
@@ -454,8 +437,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     }
 
     private void destroy() {
-        checkIfCalledOnValidThread();
-
         if(sessionId.equals(BigInteger.ZERO)) {
             Log.w(TAG, "destroy() for sessionid 0");
             return;
@@ -497,7 +478,7 @@ class VideoRoomClient implements WebSocketChannelEvents {
         }
 
         String transaction = null;
-        Boolean isAck = false;
+        boolean isAck = false;
 
         try {
             JSONObject json = new JSONObject(msg);
@@ -505,7 +486,7 @@ class VideoRoomClient implements WebSocketChannelEvents {
             String janus = json.optString("janus");
             String sender = json.optString("sender");
             transaction = json.optString("transaction");
-            JanusTransaction2 JanusTransaction2 = transactionMap.get(transaction);
+            JanusTransaction2 janusTransaction = transactionMap.get(transaction);
 
             // this branch will handle sender message, include server notification and server response.
             if(!sender.equals("")) {
@@ -528,17 +509,17 @@ class VideoRoomClient implements WebSocketChannelEvents {
                     if (videoroom.equals("joined")) {
                         String pid = data.optString("private_id");
                         if(!pid.equals("")) privateId = new BigInteger(pid);
-                        JanusTransaction2.events.success(senderId);
+                        janusTransaction.events.success(senderId);
                     } else if (videoroom.equals("attached")) {
-                        JanusTransaction2.events.success(senderId, json.optJSONObject("jsep"));
+                        janusTransaction.events.success(senderId, json.optJSONObject("jsep"));
                     } else if (videoroom.equals("event")) {
                         String configured = data.optString("configured");
-                        if(!configured.equals("") && JanusTransaction2 != null && JanusTransaction2.events != null) {
+                        if(!configured.equals("") && janusTransaction != null && janusTransaction.events != null) {
                             if(configured.equals("ok")) {
-                                JanusTransaction2.events.success(senderId, json.optJSONObject("jsep"));
+                                janusTransaction.events.success(senderId, json.optJSONObject("jsep"));
                             }else {
                                 json = json.optJSONObject("error");
-                                JanusTransaction2.events.error(
+                                janusTransaction.events.error(
                                         checkError(json, "reason", "configured is " + configured),
                                         checkError(json, "code", "createOffer")
                                 );
@@ -547,12 +528,12 @@ class VideoRoomClient implements WebSocketChannelEvents {
                         }
 
                         String started = data.optString("started");
-                        if(!started.equals("") && JanusTransaction2 != null && JanusTransaction2.events != null) {
+                        if(!started.equals("") && janusTransaction != null && janusTransaction.events != null) {
                             if(started.equals("ok")) {
-                                JanusTransaction2.events.success(senderId);
+                                janusTransaction.events.success(senderId);
                             } else {
                                 json = json.optJSONObject("error");
-                                JanusTransaction2.events.error(
+                                janusTransaction.events.error(
                                         checkError(json, "reason", "started is " + started),
                                         checkError(json, "code", "createAnswer")
                                 );
@@ -580,8 +561,8 @@ class VideoRoomClient implements WebSocketChannelEvents {
                     } else if (videoroom.equals("slow_link")) {
                         reportNotification("onWebSocketMessage: Got a slow_link event on session " + sessionId);
                     } else if (videoroom.equals("error")) {
-                        if (JanusTransaction2 != null && JanusTransaction2.events != null) {
-                            JanusTransaction2.events.error("unknown error", "videoroom");
+                        if (janusTransaction != null && janusTransaction.events != null) {
+                            janusTransaction.events.error("unknown error", "videoroom");
                         }
                     } else {
                         reportError("onWebSocketMessage: unrecognized protocol.");
@@ -598,10 +579,10 @@ class VideoRoomClient implements WebSocketChannelEvents {
                     //detach(senderId);
                 } else if (janus.equals("error")) {
                     json = json.optJSONObject("error");
-                    if (JanusTransaction2 != null && JanusTransaction2.events != null && json != null) {
+                    if (janusTransaction != null && janusTransaction.events != null && json != null) {
                         String reason = json.optString("reason");
                         String code = json.optString("code");
-                        JanusTransaction2.events.error(reason, code);
+                        janusTransaction.events.error(reason, code);
                     }
                 } else {
                     reportError("onWebSocketMessage: unrecognized protocol.");
@@ -616,13 +597,13 @@ class VideoRoomClient implements WebSocketChannelEvents {
                 Log.i(TAG,"Got an ack on session  " + sessionId);
                 isAck = true;
             }else if(janus.equals("success")) {
-                if (JanusTransaction2 != null && JanusTransaction2.events != null) {
+                if (janusTransaction != null && janusTransaction.events != null) {
                     json = json.optJSONObject("data");
                     if(json != null) {
                         String id = json.optString("id");
-                        JanusTransaction2.events.success(new BigInteger(id));
+                        janusTransaction.events.success(new BigInteger(id));
                     } else {
-                        JanusTransaction2.events.success(BigInteger.ZERO);
+                        janusTransaction.events.success(BigInteger.ZERO);
                     }
                 }
             } else if(janus.equals("error")) {
@@ -632,10 +613,10 @@ class VideoRoomClient implements WebSocketChannelEvents {
 
                 String reason = json.optString("reason");
                 String code = json.optString("code");
-                if(JanusTransaction2 == null || JanusTransaction2.events == null) {
+                if(janusTransaction == null || janusTransaction.events == null) {
                     Log.e(TAG, "onWebSocketMessage:error, Code:" + code + ", reason: " + reason);
                 } else {
-                    JanusTransaction2.events.error(reason, code);
+                    janusTransaction.events.error(reason, code);
                 }
             } else {
                 Log.d(TAG, "onWebSocketMessage: unrecognized protocol.");
@@ -666,12 +647,6 @@ class VideoRoomClient implements WebSocketChannelEvents {
     // ----------------------------------------------------------------------------
     // Helper functions.
     // ----------------------------------------------------------------------------
-    private void checkIfCalledOnValidThread() {
-        if (Thread.currentThread() != handler.getLooper().getThread()) {
-            throw new IllegalStateException("WebSocket method is not called on valid thread");
-        }
-    }
-    
     private void setState(JanusServerState state) {
         if(state != JanusServerState.ERROR)
             this.state = state;
