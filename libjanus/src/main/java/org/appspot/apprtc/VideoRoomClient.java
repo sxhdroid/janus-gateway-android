@@ -20,6 +20,9 @@ import org.webrtc.SessionDescription;
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentHashMap;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+
 import static org.appspot.apprtc.janus.JanusUtils.convertJsonToCandidate;
 import static org.appspot.apprtc.janus.JanusUtils.convertSdpToJson;
 import static org.appspot.apprtc.janus.JanusUtils.jsonPut;
@@ -96,6 +99,14 @@ class VideoRoomClient implements WebSocketChannelEvents {
 
     public void trickleCandidateComplete(final BigInteger handleId) {
         handler.post(() -> trickleComplete(handleId));
+    }
+
+    public void startRecord(BigInteger handleId, String fileName, Function1<Boolean, Unit> callback) {
+        handler.post(() -> configure(handleId, true, fileName, callback));
+    }
+
+    public void stopRecord(BigInteger handleId, Function1<Boolean, Unit> callback) {
+        handler.post(() -> configure(handleId, false, null, callback));
     }
 
     // ----------------------------------------------------------------------------
@@ -436,6 +447,53 @@ class VideoRoomClient implements WebSocketChannelEvents {
         handleMap.remove(janusHandle.handleId);
     }
 
+    private void configure(BigInteger handleId, boolean record, String fileName, Function1<Boolean, Unit> callback) {
+        if(state != JanusServerState.CONNECTED) {
+            Log.w(TAG, "configure() in a error state -- " + state);
+            return;
+        }
+
+        JanusTransaction2 janusTransaction = new JanusTransaction2();
+        janusTransaction.transactionId = randomString(12);
+        janusTransaction.events = new JanusTransaction2.TransactionEvents() {
+
+            @Override
+            public void success(BigInteger id) {
+                Log.i(TAG,"configure success");
+                if (callback != null) {
+                    callback.invoke(true);
+                }
+            }
+
+            @Override
+            public void error(String reason, String code) {
+                //fixme: retry
+                Log.e(TAG,"configure error: " + code + " " + reason);
+                reportError(reason);
+                if (callback != null) {
+                    callback.invoke(false);
+                }
+            }
+        };
+
+        transactionMap.put(janusTransaction.transactionId, janusTransaction);
+
+        JSONObject json = new JSONObject();
+        JSONObject jsonBody = new JSONObject();
+
+        jsonPut(jsonBody, "request", "configure");
+        jsonPut(jsonBody, "record", record);
+        jsonPut(jsonBody, "filename", fileName);
+
+        jsonPut(json, "janus", "message");
+        jsonPut(json, "body", jsonBody);
+        jsonPut(json, "session_id", sessionId);
+        jsonPut(json, "handle_id", handleId);
+        jsonPut(json, "transaction", janusTransaction.transactionId);
+
+        wsClient.send(json.toString());
+    }
+
     private void destroy() {
         if(sessionId.equals(BigInteger.ZERO)) {
             Log.w(TAG, "destroy() for sessionid 0");
@@ -516,8 +574,12 @@ class VideoRoomClient implements WebSocketChannelEvents {
                         String configured = data.optString("configured");
                         if(!configured.equals("") && janusTransaction != null && janusTransaction.events != null) {
                             if(configured.equals("ok")) {
-                                janusTransaction.events.success(senderId, json.optJSONObject("jsep"));
-                            }else {
+                                if (json.has("jsep")) {
+                                    janusTransaction.events.success(senderId, json.optJSONObject("jsep"));
+                                } else {
+                                    janusTransaction.events.success(senderId);
+                                }
+                            } else {
                                 json = json.optJSONObject("error");
                                 janusTransaction.events.error(
                                         checkError(json, "reason", "configured is " + configured),

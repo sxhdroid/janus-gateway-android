@@ -35,10 +35,10 @@ class JanusClient private constructor(private val context: Activity, private val
     private var callStartedTimeMs: Long = 0
     private var iceConnected = false
 
-    var onLiveCallback: OnLiveCallback? = null
+    var onJanusCallback: OnJanusCallback? = null
 
     init {
-        initLive(builder.eglBase!!, builder.peerConnectionParameters, builder.options)
+        initClient(builder.eglBase!!, builder.peerConnectionParameters, builder.options)
     }
 
     private fun initVideoRoom() {
@@ -53,7 +53,7 @@ class JanusClient private constructor(private val context: Activity, private val
             }
 
             override fun onLeft(handleId: BigInteger) {
-                context.runOnUiThread { onLiveCallback?.onLeftRoom(handleId) }
+                context.runOnUiThread { onJanusCallback?.onLeftRoom(handleId) }
             }
 
             override fun onNotification(notificationMessage: String?) {}
@@ -124,11 +124,11 @@ class JanusClient private constructor(private val context: Activity, private val
             }
 
             override fun onLocalRender(handleId: BigInteger) {
-                context.runOnUiThread { onLiveCallback?.onLocalRender(handleId) }
+                context.runOnUiThread { onJanusCallback?.onLocalRender(handleId) }
             }
 
             override fun onRemoteRender(handleId: BigInteger) {
-                context.runOnUiThread { onLiveCallback?.onRemoteRender(handleId) }
+                context.runOnUiThread { onJanusCallback?.onRemoteRender(handleId) }
             }
         })
         peerConnectionClient!!.createPeerConnectionFactory(options
@@ -217,7 +217,7 @@ class JanusClient private constructor(private val context: Activity, private val
 
     private fun disconnectWithErrorMessage(errorMessage: String) {
         Log.e(tag, "disconnectWithErrorMessage: $errorMessage")
-        context.runOnUiThread { onLiveCallback?.onError(errorMessage) }
+        context.runOnUiThread { onJanusCallback?.onError(errorMessage) }
     }
 
     private fun onPublisherJoinedInternal(handleId: BigInteger) {
@@ -242,8 +242,8 @@ class JanusClient private constructor(private val context: Activity, private val
         }
     }
 
-    private fun initLive(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
-                 options: PeerConnectionFactory.Options?) {
+    private fun initClient(eglBase: EglBase, peerConnectionParameters: PeerConnectionClient2.PeerConnectionParameters,
+                           options: PeerConnectionFactory.Options?) {
         initVideoRoom()
         initPeerConnection(eglBase, peerConnectionParameters, options)
     }
@@ -317,6 +317,15 @@ class JanusClient private constructor(private val context: Activity, private val
         peerConnectionClient?.setVideoEnabled(enabled)
     }
 
+    @JvmOverloads
+    fun startRecord(handleId: BigInteger, fileName: String? = null, callback:((isRecording: Boolean) -> Unit)?) {
+        videoRoomClient?.startRecord(handleId, fileName, callback)
+    }
+
+    fun stopRecord(handleId: BigInteger, callback:((isRecording: Boolean) -> Unit)?) {
+        videoRoomClient?.stopRecord(handleId, callback)
+    }
+
     fun setVideoRender(handleId: BigInteger, videoRender: SurfaceViewRenderer?) {
         peerConnectionClient?.setVideoRender(handleId, videoRender)
     }
@@ -330,7 +339,7 @@ class JanusClient private constructor(private val context: Activity, private val
         videoRoomClient = null
         peerConnectionClient?.release()
         peerConnectionClient = null
-        onLiveCallback = null
+        onJanusCallback = null
         mediaProjectionPermissionResultData = null
     }
 
@@ -529,7 +538,7 @@ class JanusClient private constructor(private val context: Activity, private val
         }
     }
 
-    interface OnLiveCallback {
+    interface OnJanusCallback {
         fun onLocalRender(handleId: BigInteger)
         fun onRemoteRender(handleId: BigInteger)
         fun onLeftRoom(handleId: BigInteger)
