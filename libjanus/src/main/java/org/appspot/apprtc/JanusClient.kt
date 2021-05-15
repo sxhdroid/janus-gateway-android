@@ -322,7 +322,7 @@ class JanusClient private constructor(private val context: Activity, private val
         videoRoomClient?.startRecord(handleId, fileName, callback)
     }
 
-    fun stopRecord(handleId: BigInteger, callback:((isRecording: Boolean) -> Unit)?) {
+    fun stopRecord(handleId: BigInteger, callback:((isStopped: Boolean) -> Unit)?) {
         videoRoomClient?.stopRecord(handleId, callback)
     }
 
