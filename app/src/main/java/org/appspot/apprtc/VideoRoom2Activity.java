@@ -267,7 +267,7 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 .setVideoMaxBitrate(8000)
                 .setAudioStartBitrate(44)
                 .builder();
-        janusClient.setOnLiveCallback(new JanusClient.OnLiveCallback() {
+        janusClient.setOnJanusCallback(new JanusClient.OnJanusCallback() {
             @Override
             public void onLocalRender(@NotNull BigInteger handleId) {
                 VideoRoom2Activity.this.onLocalRender(handleId);
@@ -531,9 +531,8 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
     }
 
     private void onLocalRender(final BigInteger handleId) { //fixme: localrender is lost, and remoterenders are reach to number of max render
-        localHandleId = handleId;
         for(int i = 1; i < maxVideoRoomUsers; i++) {
-            if(positionVector.get(i) == BigInteger.ZERO) {
+            if(positionVector.get(i).equals(BigInteger.ZERO)) {
                 positionVector.set(i, handleId);
 
                 SurfaceViewRenderer renderer = surfaceViewRenderers.get(i);
@@ -542,9 +541,15 @@ public class VideoRoom2Activity extends Activity implements CallFragment.OnCallE
                 janusClient.setVideoRender(handleId, renderer);
                 setRendererMirror(i);
                 setClickListener(i);
-                return;
+                break;
+            } else {
+                if (positionVector.get(i).equals(localHandleId)) {
+                    positionVector.set(i, handleId);
+                    break;
+                }
             }
         }
+        localHandleId = handleId;
     }
 
     private void setClickListener(final int index) {
