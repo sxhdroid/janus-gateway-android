@@ -312,6 +312,11 @@ public class PeerConnectionClient2 {
      */
     void onPeerConnectionError(final BigInteger handleId, final String description);
 
+    /**
+     * Callback notify local video preview, call twice.
+     *
+     * @param handleId First call is local generate, Second call is janus server return.
+     */
     void onLocalRender(final BigInteger handleId);
 
     void onRemoteRender(final BigInteger handleId);
@@ -589,9 +594,11 @@ public class PeerConnectionClient2 {
         createVideoTrack(handleId, videoCapturer);
       }
       peerConnection.addTrack(localVideoTrack, mediaStreamLabels);
-      if (videoSinkMap.get(localHandleId) == null) {
-        events.onLocalRender(handleId);
+      ProxyVideoSinks sinks = videoSinkMap.get(localHandleId);
+      if (sinks != null) {
+        videoSinkMap.put(handleId, sinks);
       }
+      events.onLocalRender(handleId);
     }
     peerConnection.addTrack(createAudioTrack(), mediaStreamLabels);
     if (isVideoCallEnabled()) {
